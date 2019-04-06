@@ -1,0 +1,49 @@
+﻿@model UserProjectAssignmentViewModel
+
+@{
+    ViewBag.Title = Model.Title;
+}
+
+<h2>Assign Users to A Project</h2>
+
+<h4>@Model.Title</h4>
+
+@section Scripts {
+    <script type="text/javascript" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#rolesDisplay').DataTable();
+
+        });
+    </script>
+}
+
+@section css {
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+}
+
+<h2>Role Editor</h2>
+<form method="post" enctype="multipart/form-data">
+    <table id="rolesDisplay" class="table-striped">
+        <thead>
+            <tr>
+                <th>Display Name:</th>
+                <th>Email:</th>
+                <th>Assigned</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Users.Count; i++)
+            {
+                <tr>
+                    <td>@Model.Users[i].DisplayName</td>
+                    <td>@Model.Users[i].Email</td>
+                    @Html.HiddenFor(p => p.Users[i].UserId)
+                    <td>@Html.CheckBoxFor(p => p.Users[i].Selected)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+

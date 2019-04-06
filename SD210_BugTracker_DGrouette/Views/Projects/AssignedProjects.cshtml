@@ -1,0 +1,38 @@
+﻿@model List<AssignedProjectsViewModel>
+@{
+    ViewBag.Title = "Assigned Projects";
+}
+
+@section Scripts {
+    <script type="text/javascript" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#assignedProjectsDisplay').DataTable();
+        });
+    </script>
+}
+
+@section css {
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+}
+
+<h2>Projects you're assigned too:</h2>
+
+<table id="assignedProjectsDisplay" class="table-striped">
+    <thead>
+        <tr>
+            <th>Project Title</th>
+            <th>User Count</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var project in Model)
+        {
+            <tr>
+                <td>@project.ProjectTitle</td>
+                <td>@project.UserCount</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

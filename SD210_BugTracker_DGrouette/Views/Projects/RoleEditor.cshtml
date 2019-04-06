@@ -1,0 +1,54 @@
+﻿@model RoleEditorViewModel
+@{
+    ViewBag.Title = "RoleEditorViewModel";
+}
+
+@section Scripts {
+    <script type="text/javascript" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#rolesDisplay').DataTable({
+                "columnDefs": [
+                    {
+                        "targets": [1, 2, 3, 4],
+                        "orderable": false
+                    }
+                ]
+            });
+        });
+    </script>
+}
+
+@section css {
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+}
+
+<h2>Role Editor</h2>
+<form method="post" enctype="multipart/form-data">
+    <table id="rolesDisplay">
+        <thead>
+            <tr>
+                <th>Names:</th>
+                @foreach (var roles in Model.Roles)
+                {
+                    <th>@roles.Name</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                @* Example Cells *@
+                <td>@Model.DisplayName</td>
+                @for (int i = 0; i < Model.RolesUserIsIn.Count; i++)
+                {
+                    <td>
+                        @Html.HiddenFor(p => p.RolesUserIsIn[i].RoleId)
+                        @Html.CheckBoxFor(p => p.RolesUserIsIn[i].Selected)
+                    </td>
+                }
+            </tr>
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+

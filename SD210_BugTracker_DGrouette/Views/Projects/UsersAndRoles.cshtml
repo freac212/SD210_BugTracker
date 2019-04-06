@@ -1,0 +1,64 @@
+﻿@model UsersAndRolesViewModel
+@{
+    ViewBag.Title = "UsersAndRoles";
+}
+
+@section Scripts {
+    <script type="text/javascript" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#rolesDisplay').DataTable({
+                "columnDefs": [
+                    {
+                        "targets": [5],
+                        "orderable": false
+                    }
+                ]
+            });
+        });
+    </script>
+}
+
+@section css {
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+}
+
+<h2>List of Users and Roles</h2>
+
+<table id="rolesDisplay" class="table-striped row-fluid">
+    <thead>
+        <tr>
+            <th>Names:</th>
+            @foreach (var item in Model.Roles)
+            {
+                <th>@item.Name</th>
+            }
+            <th>Edit</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.UserModels)
+        {
+            <tr>
+                @* Example Cells *@
+                <td>@user.DisplayName</td>
+
+                @foreach (var roles in Model.Roles)
+                {
+                    if (user.RolesUserIsIn.Any(p => p.RoleId == roles.Id))
+                    {
+                        <td>✔</td>
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
+                }
+                <td>
+                    <a class="fas fa-user-edit" href="@Url.Action("RoleEditor", "Projects", new { userId = user.Id })"></a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

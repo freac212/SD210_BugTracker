@@ -1,0 +1,17 @@
+﻿@model ProjectManipulationViewModel
+
+@{
+    ViewBag.Title = "EditProject";
+}
+
+<h2>EditProject</h2>
+
+<form method="post" enctype="multipart/form-data">
+    <dl>
+        @Html.ValidationMessageFor(p => p.Title)
+        <dt>Project Title: </dt>
+        <dd>@Html.TextBoxFor(p => p.Title, new { placeholder = "New Project" })</dd>
+    </dl>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+

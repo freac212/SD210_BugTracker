@@ -1,0 +1,71 @@
+﻿@model List<ProjectsViewModel>
+@{
+    ViewBag.Title = "Projects";
+}
+@section Scripts {
+    <script type="text/javascript" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#projectsDisplay').DataTable({
+                "columnDefs": [
+                    {
+                        "targets": [2, 3],
+                        "orderable": false
+                    }
+                ]
+            });
+        });
+
+/**/</script>
+}
+
+@section css {
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+}
+
+@*<h2>Projects</h2>*@
+
+@* List all projects here (Only Admins and Project managers can see it) *@
+@* A column in the listed all projects allows to edit the projects (Admins + Project Managers) *@
+@* Create Project button (Admins + Project Managers) *@
+@* List Assigned Projects button (All) *@
+@* Project Assignment View Button (Admins + Project Managers) *@
+@* Clicking a button on a project opens the Assignment page, (Much like the role assignment page)
+    It lists all the users with check boxes next to them. Also a submittion button to finalize
+    the data.*@
+
+@if (User.IsInRole(ProjectConstants.AdminRole) || User.IsInRole(ProjectConstants.ManagerRole))
+{
+    <input type="button" value="Create Project" onclick="location.href='@Url.Action("Create", "Projects")'" class="btn-default col-lg-12" style="margin: 20px 0;"/>
+}
+
+@if (Model.Count > 0)
+{
+    <table id="projectsDisplay" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>User Count</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var project in Model)
+            {
+                <tr>
+                    @* Example Cells *@
+                    <td>@project.Title</td>
+                    <td>@project.UserCount</td>
+                    <td><a href="@Url.Action("UserProjectAssignment", "Projects", new { id = project.Id})"><i class="fas fa-user-plus"></i></a></td>
+                    <td><a href="@Url.Action("EditProject", "Projects", new { id = project.Id})"><i class="fas fa-edit"></i></a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    //Make this a login portal later.
+    <h4>Please log in to view this site.</h4>
+}
