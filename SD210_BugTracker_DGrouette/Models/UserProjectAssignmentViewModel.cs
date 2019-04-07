@@ -6,6 +6,6 @@ namespace SD210_BugTracker_DGrouette.Models
     {
         public string Title { get; set; }
         public int Id { get; set; }
-        public List<UserInProject> Users { get; set; }
+        public List<UserInProjectViewModel> Users { get; set; }
     }
 }

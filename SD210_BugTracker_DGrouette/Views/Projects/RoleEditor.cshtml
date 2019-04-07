@@ -1,6 +1,6 @@
 ﻿@model RoleEditorViewModel
 @{
-    ViewBag.Title = "RoleEditorViewModel";
+    ViewBag.Title = "Editing roles of: " + Model.DisplayName;
 }
 
 @section Scripts {
@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
 }
 
-<h2>Role Editor</h2>
+<span>Check the boxes of roles you want this user to have, then click the submit button.</span>
 <form method="post" enctype="multipart/form-data">
     <table id="rolesDisplay">
         <thead>

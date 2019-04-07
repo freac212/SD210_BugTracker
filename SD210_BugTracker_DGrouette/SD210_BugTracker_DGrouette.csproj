@@ -187,7 +187,7 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\ProjectsController.cs" />
     <Compile Include="Models\AssignedProjectsViewModel.cs" />
-    <Compile Include="Models\UserInProject.cs" />
+    <Compile Include="Models\UserInProjectViewModel.cs" />
     <Compile Include="Models\UserProjectAssignmentViewModel.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -203,6 +203,7 @@
     <Compile Include="Models\ProjectsViewModel.cs" />
     <Compile Include="Models\RoleEditorViewModel.cs" />
     <Compile Include="Models\UsersAndRolesViewModel.cs" />
+    <Compile Include="Models\UsersAssignedRolesViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
