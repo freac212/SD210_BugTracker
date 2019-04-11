@@ -7,14 +7,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity.Owin;
 
 namespace SD210_BugTracker_DGrouette.Controllers
 {
     public class ProjectsController : Controller
     {
-        readonly static private ApplicationDbContext DbContext = new ApplicationDbContext();
-        private readonly RoleManager<IdentityRole> RoleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(DbContext));
-        private readonly UserManager<ApplicationUser> UserManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(DbContext));
+        public ApplicationUserManager UserManager => HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+        public ApplicationDbContext DbContext => HttpContext.GetOwinContext().Get<ApplicationDbContext>();
+        public RoleManager<IdentityRole> RoleManager => new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(DbContext));
+
 
         // GET: Projects
         [HttpGet]
@@ -39,7 +41,8 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 }).ToList();
 
                 return View(projects);
-            } else if (User.Identity.IsAuthenticated)
+            }
+            else if (User.Identity.IsAuthenticated)
             {
                 // Just so they're not asked to log in, because the home page is all projects. 
                 return RedirectToAction("AssignedProjects");
@@ -60,8 +63,10 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 .Where(project => project.Users.Any(p => p.Id == currentUserId))
                 .Select(p => new AssignedProjectsViewModel()
                 {
+                    Id = p.Id,
                     ProjectTitle = p.Title,
-                    UserCount = p.Users.Count
+                    UserCount = p.Users.Count,
+                    TicketCount = p.Tickets.Count
                 }).ToList();
 
             return View(projects);
@@ -308,12 +313,12 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 {
                     Id = user.Id,
                     DisplayName = user.DisplayName,
-                    RolesUserIsIn = RoleManager.Roles.ToList().Select(prop => new UsersAssignedRolesViewModel()
+                    RolesUserIsIn = DbContext.Roles.ToList().Select(prop => new UsersAssignedRolesViewModel()
                     {
                         RoleId = prop.Id,
                         Selected = user.Roles.Any(p => p.RoleId == prop.Id)
                     }).ToList(),
-                    Roles = RoleManager.Roles.ToList()
+                    Roles = DbContext.Roles.ToList() // Can use a viewModel for this. Actually it's best too.
                 });
             }
         }
@@ -324,26 +329,40 @@ namespace SD210_BugTracker_DGrouette.Controllers
         {
             if (!ModelState.IsValid || userId is "" || formData is null)
                 return RedirectToAction("UsersAndRoles");
-                //return View();
-            
-            var user = DbContext.Users.FirstOrDefault(p => p.Id == userId);
+            //return View();
+
+            var user = UserManager.Users.FirstOrDefault(p => p.Id == userId);
 
             if (user is null)
                 return RedirectToAction("UsersAndRoles");
-            
+
             foreach (var item in formData.RolesUserIsIn)
             {
-                var role = RoleManager.Roles.FirstOrDefault(p => p.Id == item.RoleId);
-                if (!item.Selected && role != null)
+                var role = DbContext.Roles.FirstOrDefault(p => p.Id == item.RoleId);
+
+                if (role is null)
                 {
-                    UserManager.RemoveFromRole(user.Id, role.Name);
+                    throw new Exception("Role is null: Role Id is missing, check if you're sending the proper roles, or if a user role is missing.");
                 }
                 else
                 {
-                    UserManager.AddToRole(user.Id, role.Name);
+                    if (item.Selected)
+                        UserManager.AddToRole(user.Id, role.Name);
+                    else
+                        UserManager.RemoveFromRole(user.Id, role.Name);
                 }
+
+                //if (!item.Selected && role != null) // ++Q , technically if the roll is null, it will try to add the null role
+                //{
+                //    UserManager.RemoveFromRole(user.Id, role.Name);
+                //}
+                //else
+                //{
+                //    UserManager.AddToRole(user.Id, role.Name);
+                //}
             }
-            UserManager.Update(user);
+
+            //UserManager.Update(user);
 
             return RedirectToAction("UsersAndRoles");
         }

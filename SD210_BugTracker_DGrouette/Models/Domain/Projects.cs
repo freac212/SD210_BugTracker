@@ -12,9 +12,12 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
 
         public virtual List<ApplicationUser> Users { get; set; }
 
+        public virtual List<Tickets> Tickets { get; set; }
+
         public Projects()
         {
             Users = new List<ApplicationUser>();
+            Tickets = new List<Tickets>();
         }
     }
 }

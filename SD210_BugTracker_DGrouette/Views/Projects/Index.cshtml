@@ -3,7 +3,7 @@
     ViewBag.Title = "Projects";
 }
 @section Scripts {
-    <script type="text/javascript" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
             $('#projectsDisplay').DataTable({
@@ -16,11 +16,11 @@
             });
         });
 
-/**/</script>
+        /**/</script>
 }
 
 @section css {
-    <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/Content/jquery.dataTables.min.css" />
 }
 
 @*<h2>Projects</h2>*@
@@ -36,9 +36,9 @@
 
 @* I don't like the way this button sits so I'm gonna hide it for now, there's a create project button under the projects menu dropdown. *@
 @*@if (User.IsInRole(ProjectConstants.AdminRole) || User.IsInRole(ProjectConstants.ManagerRole))
-{
-    <input type="button" value="Create New Project" onclick="location.href='@Url.Action("Create", "Projects")'" class="btn-default col-lg-12" style="margin: 20px 0;"/>
-}*@
+    {
+        <input type="button" value="Create New Project" onclick="location.href='@Url.Action("Create", "Projects")'" class="btn-default col-lg-12" style="margin: 20px 0;"/>
+    }*@
 
 @if (Model != null)
 {

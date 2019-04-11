@@ -339,7 +339,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             base.Dispose(disposing);
         }
 
-        // GET: /Manage/ChangeUserName
+        // GET: /Manage/ChangeDisplayName
         public ActionResult ChangeDisplayName()
         {
             var displayName = new ChangeDisplayNameViewModel()
@@ -351,7 +351,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             return View(displayName);
         }
 
-        // POST: /Manage/ChangeUserName
+        // POST: /Manage/ChangeDisplayName
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ChangeDisplayName(ChangeDisplayNameViewModel model)

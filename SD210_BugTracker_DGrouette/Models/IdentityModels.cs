@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -13,12 +14,18 @@ namespace SD210_BugTracker_DGrouette.Models
     {
         // Lazy loading - Many to many relationship
         public virtual List<Projects> Projects { get; set; }
+        [InverseProperty(nameof(Tickets.CreatedBy))] // Used to connect certain properties when there's more than one of the same properties. (Like users.)
+        public virtual List<Tickets> CreatedTickets { get; set; }
+        [InverseProperty(nameof(Tickets.AssignedTo))]
+        public virtual List<Tickets> AssignedTickets { get; set; }
 
         public virtual string DisplayName { get; set; }
 
         public ApplicationUser()
         {
             Projects = new List<Projects>();
+            CreatedTickets = new List<Tickets>();
+            AssignedTickets = new List<Tickets>();
         }
 
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager)
@@ -38,6 +45,10 @@ namespace SD210_BugTracker_DGrouette.Models
         }
 
         public DbSet<Projects> Projects { get; set; } // Allows access of users projects from the DB
+        public DbSet<Tickets> Tickets { get; set; }
+        public DbSet<TicketStatuses> TicketStatuses { get; set; }
+        public DbSet<TicketPriorities> TicketPriorities { get; set; }
+        public DbSet<TicketTypes> TicketTypes { get; set; }
 
         public static ApplicationDbContext Create()
         {

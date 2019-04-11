@@ -4,16 +4,23 @@
 }
 
 @section Scripts {
-    <script type="text/javascript" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            $('#assignedProjectsDisplay').DataTable();
+            $('#assignedProjectsDisplay').DataTable({
+                "columnDefs": [
+                    {
+                        "targets": [2],
+                        "orderable": false
+                    }
+                ]
+            });
         });
     </script>
 }
 
 @section css {
-    <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/Content/jquery.dataTables.min.css" />
 }
 
 <h4>Projects you're assigned too:</h4>
@@ -23,6 +30,11 @@
         <tr>
             <th>Project Title</th>
             <th>User Count</th>
+            <th>Ticket Count</th>
+            @if (User.IsInRole(ProjectConstants.SubmitterRole))
+            {
+                <th></th>
+            }
         </tr>
     </thead>
     <tbody>
@@ -31,6 +43,11 @@
             <tr>
                 <td>@project.ProjectTitle</td>
                 <td>@project.UserCount</td>
+                <td>@project.TicketCount</td>
+                @if (User.IsInRole(ProjectConstants.SubmitterRole))
+                {
+                    <td><a href="@Url.Action("CreateTicket", "Ticket", new { projectId = project.Id })">Add Ticket</a></td>
+                }
             </tr>
         }
     </tbody>

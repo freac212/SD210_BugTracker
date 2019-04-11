@@ -1,0 +1,155 @@
+﻿@model ListTicketsViewModel
+@{
+    ViewBag.Title = "ListTickets";
+}
+
+
+@section Scripts {
+    <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#ticketsDisplay').DataTable({
+                "columnDefs": [
+                    {
+                        "targets": [2],
+                        "orderable": false
+                    }
+                ]
+            });
+        });
+    </script>
+}
+
+@section css {
+    <link rel="stylesheet" href="~/Content/jquery.dataTables.min.css" />
+    @*<link href="~/Content/dataTables.bootstrap.min.css" rel="stylesheet" />*@ @*++Q V3 bootstrap Datatable CSS*@
+}
+
+@if (ProjectHelper.UserIsAdminOrManager(User))
+{
+    <h2>All Tickets</h2>
+
+}
+else
+{
+    <h2>Assigned and Created tickets</h2>
+}
+
+<div class="table-responsive">
+    <table id="ticketsDisplay" class="table table-striped" style="width: 100%;">
+        <thead>
+            <tr>
+                @*@foreach (var item in typeof(TicketViewModel).GetProperties())
+                    {
+                        <th>@item.Name</th>
+                    }*@
+                <th>Title</th>
+                <th>Desc.</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Creator</th>
+                <th>Crnt Dev</th>
+                <th>btn1</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in Model.AllTickets)
+            {
+                <tr>
+                    <td>@ticket.Title</td>
+                    <td>@ticket.Description</td>
+                    <td>@ticket.DateCreated</td>
+                    <td>@ticket.DateUpdated</td>
+                    <td>@ticket.TicketType.Name</td>
+                    <td>@ticket.TicketPriority.Name</td>
+                    <td>@ticket.TicketStatus.Name</td>
+                    <td>@ticket.CreatedByDisplayName</td>
+                    <td>@ticket.AssignedToDisplayName</td>
+                    <td>X</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="table-responsive">
+    <table id="ticketsDisplay" class="table table-striped" style="width: 100%;">
+        <thead>
+            <tr>
+                @*@foreach (var item in typeof(TicketViewModel).GetProperties())
+                    {
+                        <th>@item.Name</th>
+                    }*@
+                <th>Title</th>
+                <th>Desc.</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Creator</th>
+                <th>Crnt Dev</th>
+                <th>btn1</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in Model.AssignedTickets)
+            {
+                <tr>
+                    <td>@ticket.Title</td>
+                    <td>@ticket.Description</td>
+                    <td>@ticket.DateCreated</td>
+                    <td>@ticket.DateUpdated</td>
+                    <td>@ticket.TicketType.Name</td>
+                    <td>@ticket.TicketPriority.Name</td>
+                    <td>@ticket.TicketStatus.Name</td>
+                    <td>@ticket.CreatedByDisplayName</td>
+                    <td>@ticket.AssignedToDisplayName</td>
+                    <td>X</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="table-responsive">
+    <table id="ticketsDisplay" class="table table-striped" style="width: 100%;">
+        <thead>
+            <tr>
+                @*@foreach (var item in typeof(TicketViewModel).GetProperties())
+                    {
+                        <th>@item.Name</th>
+                    }*@
+                <th>Title</th>
+                <th>Desc.</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Creator</th>
+                <th>Crnt Dev</th>
+                <th>btn1</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in Model.CreatedTickets)
+            {
+                <tr>
+                    <td>@ticket.Title</td>
+                    <td>@ticket.Description</td>
+                    <td>@ticket.DateCreated</td>
+                    <td>@ticket.DateUpdated</td>
+                    <td>@ticket.TicketType.Name</td>
+                    <td>@ticket.TicketPriority.Name</td>
+                    <td>@ticket.TicketStatus.Name</td>
+                    <td>@ticket.CreatedByDisplayName</td>
+                    <td>@ticket.AssignedToDisplayName</td>
+                    <td>X</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

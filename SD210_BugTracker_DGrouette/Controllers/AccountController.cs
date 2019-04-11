@@ -156,16 +156,11 @@ namespace SD210_BugTracker_DGrouette.Controllers
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email, DisplayName = model.Email };
 
-                var roleStore = new RoleStore<IdentityRole>(DbContext);
-                var roleManager = new RoleManager<IdentityRole>(roleStore);
-
-                var userStore = new UserStore<ApplicationUser>(DbContext);
-                var userManager = new UserManager<ApplicationUser>(userStore);
-
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    userManager.AddToRole(user.Id, ProjectConstants.SubmitterRole);
+                    UserManager.AddToRole(user.Id, ProjectConstants.SubmitterRole);
+
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
 
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771

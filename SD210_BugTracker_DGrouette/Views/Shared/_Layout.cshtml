@@ -6,13 +6,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Manager - @ViewBag.Title</title>
-    <link href="~/Content/TemplateBootstrap/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="~/Content/TemplateBootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" />
-    <link href="~/Content/TemplateCSS/theme.css" rel="stylesheet" />
+    <link href="~/Content/TemplateBootstrap/css/bootstrap.min.css" rel="stylesheet" /> @*++Q*@
+    <link href="~/Content/TemplateBootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" /> @*++Q*@
+    <link href="~/Content/TemplateCSS/theme.css" rel="stylesheet" /> @*++Q*@
     <link href="~/Content/TemplateImages/icons/css/font-awesome.css" rel="stylesheet" />
     <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
 
-    @*@Styles.Render("~/Content/css")*@
+    @*@Styles.Render("~/Content/css")*@ @*++Q*@
     @Scripts.Render("~/bundles/modernizr")
     @Styles.Render("~/Content/fontawesome-free/css/all.min.css")
     @RenderSection("css", false)
@@ -80,6 +80,15 @@
                                         }
                                     </ul>
                                 }
+                            </li>
+                            @* ======== Tickets ======== *@
+                            <li>
+                                @*@Html.ActionLink("Role Manager", "UsersAndRoles", "Projects")*@
+                                <a href="@Url.Action("ListTickets", "Ticket")">
+                                    <i class="menu-icon icon-edit"></i>
+                                    @* fas fa-user-edit *@
+                                    Tickets
+                                </a>
                             </li>
                             @if (User.IsInRole(ProjectConstants.AdminRole))
                             {

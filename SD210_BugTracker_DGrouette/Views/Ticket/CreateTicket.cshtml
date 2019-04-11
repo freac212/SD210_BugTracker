@@ -1,0 +1,47 @@
+﻿@model CreateTicketViewModel
+@{
+    ViewBag.Title = "Ticket Creation";
+}
+
+<h4>Create a new ticket: </h4>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        @Html.ValidationSummary()
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.Title, "Ticket Title: ", new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.TextBoxFor(p => p.Title, new { placeholder = "Title of the Ticket...", @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.Description, "Ticket Description: ", new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.TextAreaFor(p => p.Description, new { placeholder = "Description of the ticket...", @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.TicketTypeId, "Ticket Type: ", new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.DropDownListFor(p => p.TicketTypeId, Model.TicketTypes, "Select Ticket Type", new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.TicketPriorityId, "Ticket Priority: ", new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.DropDownListFor(p => p.TicketPriorityId, Model.TicketPriorities, "Select Priority Type", new { @class = "form-control" })
+    </div>
+
+    @Html.HiddenFor(p => p.ProjectId)
+
+    <div class="form-group">
+        <button type="submit" class="form-control btn-default">Submit</button>
+    </div>
+</form>
+

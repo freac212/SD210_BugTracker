@@ -40,7 +40,7 @@ namespace SD210_BugTracker_DGrouette.Migrations
             const string userWithAllRolesUserName = "test@test.com";
             const string userWithAllRolesPS = "Password-1";
 
-            // Check if Admin Role exists, else create it
+            // Check if Roles exists, else create it
             context.Roles.AddOrUpdate(p => p.Name, new IdentityRole(ProjectConstants.AdminRole));
             context.Roles.AddOrUpdate(p => p.Name, new IdentityRole(ProjectConstants.ManagerRole));
             context.Roles.AddOrUpdate(p => p.Name, new IdentityRole(ProjectConstants.DeveloperRole));
@@ -48,12 +48,12 @@ namespace SD210_BugTracker_DGrouette.Migrations
 
             // ============ Admin user ==============
             ApplicationUser adminUser = SeedUser(adminUserName, adminUserName, adminPS);
-            // Verify this users role
+            // Verify this users role/s
             VerifyUserRole(adminUser, ProjectConstants.AdminRole, UserManager);
 
             // ============ Other Users ==============
             ApplicationUser userWithAllRoles = SeedUser(userWithAllRolesUserName, userWithAllRolesUserName, userWithAllRolesPS);
-            // Verify this users role
+            // Verify this users role/s
             VerifyUserRole(userWithAllRoles, new List<string>(){
                 ProjectConstants.AdminRole,
                 ProjectConstants.ManagerRole,
@@ -73,6 +73,21 @@ namespace SD210_BugTracker_DGrouette.Migrations
             {
                 Context.Projects.Add(project);
             }
+
+            // ============== Seeded Ticket Properties ============== ++Q Can loop this later.
+            // ============== Ticket Statuses ==============
+            Context.TicketStatuses.AddOrUpdate(p => p.Name, new TicketStatuses() { Name = ProjectConstants.TicketStatusOpen });
+            Context.TicketStatuses.AddOrUpdate(p => p.Name, new TicketStatuses() { Name = ProjectConstants.TicketStatusResolved });
+            Context.TicketStatuses.AddOrUpdate(p => p.Name, new TicketStatuses() { Name = ProjectConstants.TicketStatusRejected });
+            // ============== Ticket Priorities ==============
+            Context.TicketPriorities.AddOrUpdate(p => p.Name, new TicketPriorities() { Name = ProjectConstants.TicketPriorityLow });
+            Context.TicketPriorities.AddOrUpdate(p => p.Name, new TicketPriorities() { Name = ProjectConstants.TicketPriorityMedium });
+            Context.TicketPriorities.AddOrUpdate(p => p.Name, new TicketPriorities() { Name = ProjectConstants.TicketPriorityHigh });
+            // ============== Ticket Types ==============
+            Context.TicketTypes.AddOrUpdate(p => p.Name, new TicketTypes() { Name = ProjectConstants.TicketTypeBug });
+            Context.TicketTypes.AddOrUpdate(p => p.Name, new TicketTypes() { Name = ProjectConstants.TicketTypeDataBase });
+            Context.TicketTypes.AddOrUpdate(p => p.Name, new TicketTypes() { Name = ProjectConstants.TicketTypeFeature });
+            Context.TicketTypes.AddOrUpdate(p => p.Name, new TicketTypes() { Name = ProjectConstants.TicketTypeSupport });
 
             // Save changes here just incase
             Context.SaveChanges();
