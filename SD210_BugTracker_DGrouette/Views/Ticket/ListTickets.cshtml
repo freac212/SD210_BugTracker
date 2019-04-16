@@ -6,147 +6,182 @@
 
 @section Scripts {
     <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/dataTables.fixedHeader.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            $('#ticketsDisplay').DataTable({
+            $('#ticketsAllDisplay').DataTable({
+                fixedHeader: true,
                 "columnDefs": [
                     {
-                        "targets": [2],
+                        "targets": [10],
+                        "orderable": false
+                    }
+                ]
+            });
+
+            $('#ticketsAssignedDisplay').DataTable({
+                fixedHeader: true,
+                "columnDefs": [
+                    {
+                        "targets": [10],
+                        "orderable": false
+                    }
+                ]
+            });
+
+            $('#ticketsCreatedDisplay').DataTable({
+                fixedHeader: true,
+                "columnDefs": [
+                    {
+                        "targets": [10],
                         "orderable": false
                     }
                 ]
             });
         });
     </script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+        });
+    </script>
 }
 
 @section css {
     <link rel="stylesheet" href="~/Content/jquery.dataTables.min.css" />
-    @*<link href="~/Content/dataTables.bootstrap.min.css" rel="stylesheet" />*@ @*++Q V3 bootstrap Datatable CSS*@
+    <link href="~/Content/fixedHeader.dataTables.min.css" rel="stylesheet" />
 }
 
-@if (ProjectHelper.UserIsAdminOrManager(User))
+@if (ProjectHelper.IsAdminOrManager(User))
 {
     <h2>All Tickets</h2>
-
 }
 else
 {
-    <h2>Assigned and Created tickets</h2>
+    <h2>Tickets from projects you're assigned to</h2>
 }
-
 <div class="table-responsive">
-    <table id="ticketsDisplay" class="table table-striped" style="width: 100%;">
+    <table id="ticketsAllDisplay" class="table table-striped" style="width: 100%;">
         <thead>
             <tr>
-                @*@foreach (var item in typeof(TicketViewModel).GetProperties())
-                    {
-                        <th>@item.Name</th>
-                    }*@
+                <th>Id</th>
+                <th>Project</th>
                 <th>Title</th>
-                <th>Desc.</th>
                 <th>Created</th>
                 <th>Updated</th>
                 <th>Type</th>
                 <th>Status</th>
                 <th>Priority</th>
                 <th>Creator</th>
-                <th>Crnt Dev</th>
-                <th>btn1</th>
+                <th>Assigned Dev</th>
+                <th></th>
+
             </tr>
         </thead>
         <tbody>
             @foreach (var ticket in Model.AllTickets)
             {
                 <tr>
+                    <td class="id-link">@Html.ActionLink(ticket.Id.ToString(), "DetailsTicket", new { ticketId = ticket.Id })</td>
+                    <td>@ticket.ProjectTitle</td>
                     <td>@ticket.Title</td>
-                    <td>@ticket.Description</td>
                     <td>@ticket.DateCreated</td>
                     <td>@ticket.DateUpdated</td>
                     <td>@ticket.TicketType.Name</td>
-                    <td>@ticket.TicketPriority.Name</td>
                     <td>@ticket.TicketStatus.Name</td>
+                    <td class="priority-icon-container">@Html.Raw(TicketHelper.PriorityChecker(ticket.TicketPriority.Name))</td>
                     <td>@ticket.CreatedByDisplayName</td>
                     <td>@ticket.AssignedToDisplayName</td>
-                    <td>X</td>
+                    @if ((bool)ticket.CanEdit)
+                    {
+                        <td>@Html.ActionLink("Edit", "EditTicket", new { ticketId = ticket.Id })</td>
+                    }
                 </tr>
             }
         </tbody>
     </table>
 </div>
+@*}*@
+<h2>Assigned Tickets</h2>
 <div class="table-responsive">
-    <table id="ticketsDisplay" class="table table-striped" style="width: 100%;">
+    <table id="ticketsAssignedDisplay" class="table table-striped" style="width: 100%;">
         <thead>
             <tr>
-                @*@foreach (var item in typeof(TicketViewModel).GetProperties())
-                    {
-                        <th>@item.Name</th>
-                    }*@
+                <th>Id</th>
+                <th>Project</th>
                 <th>Title</th>
-                <th>Desc.</th>
                 <th>Created</th>
                 <th>Updated</th>
                 <th>Type</th>
                 <th>Status</th>
                 <th>Priority</th>
                 <th>Creator</th>
-                <th>Crnt Dev</th>
-                <th>btn1</th>
+                <th>Assigned Dev</th>
+                <th></th>
+
             </tr>
         </thead>
         <tbody>
             @foreach (var ticket in Model.AssignedTickets)
             {
                 <tr>
+                    <td class="id-link">@Html.ActionLink(ticket.Id.ToString(), "DetailsTicket", new { ticketId = ticket.Id })</td>
+                    <td>@ticket.ProjectTitle</td>
                     <td>@ticket.Title</td>
-                    <td>@ticket.Description</td>
                     <td>@ticket.DateCreated</td>
                     <td>@ticket.DateUpdated</td>
                     <td>@ticket.TicketType.Name</td>
-                    <td>@ticket.TicketPriority.Name</td>
                     <td>@ticket.TicketStatus.Name</td>
+                    <td class="priority-icon-container">@Html.Raw(TicketHelper.PriorityChecker(ticket.TicketPriority.Name))</td>
                     <td>@ticket.CreatedByDisplayName</td>
                     <td>@ticket.AssignedToDisplayName</td>
-                    <td>X</td>
+                    @if ((bool)ticket.CanEdit)
+                    {
+                        <td>@Html.ActionLink("Edit", "EditTicket", new { ticketId = ticket.Id })</td> <!--These only show up for admins, edits can still happen on the details page of each ticket-->
+                    }
                 </tr>
             }
         </tbody>
     </table>
 </div>
+<h2>Created tickets</h2>
 <div class="table-responsive">
-    <table id="ticketsDisplay" class="table table-striped" style="width: 100%;">
+    <table id="ticketsCreatedDisplay" class="table table-striped" style="width: 100%;">
         <thead>
             <tr>
-                @*@foreach (var item in typeof(TicketViewModel).GetProperties())
-                    {
-                        <th>@item.Name</th>
-                    }*@
+                <th>Id</th>
+                <th>Project</th>
                 <th>Title</th>
-                <th>Desc.</th>
                 <th>Created</th>
                 <th>Updated</th>
                 <th>Type</th>
                 <th>Status</th>
                 <th>Priority</th>
                 <th>Creator</th>
-                <th>Crnt Dev</th>
-                <th>btn1</th>
+                <th>Assigned Dev</th>
+                <th></th>
+
             </tr>
         </thead>
         <tbody>
             @foreach (var ticket in Model.CreatedTickets)
             {
                 <tr>
+                    <td class="id-link">@Html.ActionLink(ticket.Id.ToString(), "DetailsTicket", new { ticketId = ticket.Id })</td>
+                    <td>@ticket.ProjectTitle</td>
                     <td>@ticket.Title</td>
-                    <td>@ticket.Description</td>
                     <td>@ticket.DateCreated</td>
                     <td>@ticket.DateUpdated</td>
                     <td>@ticket.TicketType.Name</td>
-                    <td>@ticket.TicketPriority.Name</td>
                     <td>@ticket.TicketStatus.Name</td>
+                    <td class="priority-icon-container">@Html.Raw(TicketHelper.PriorityChecker(ticket.TicketPriority.Name))</td>
                     <td>@ticket.CreatedByDisplayName</td>
                     <td>@ticket.AssignedToDisplayName</td>
-                    <td>X</td>
+                    @if ((bool)ticket.CanEdit)
+                    {
+                        <td>@Html.ActionLink("Edit", "EditTicket", new { ticketId = ticket.Id })</td> <!--These only show up for admins, edits can still happen on the details page of each ticket-->
+                    }
                 </tr>
             }
         </tbody>

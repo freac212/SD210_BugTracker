@@ -1,0 +1,23 @@
+﻿@model CreateCommentTicketViewModel
+@{
+    ViewBag.Title = "Ticket Comment";
+}
+
+<h2>Create a comment for the ticket.</h2>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        @Html.ValidationSummary()
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.Comment, "Comment: ")
+    </div>
+    <div class="form-group">
+        @Html.TextBoxFor(p => p.Comment, new { placeholder = "Comment here..", @class = "form-control" })
+    </div>
+
+    @Html.HiddenFor(p => p.TicketId)
+
+        <button type="submit" class="btn btn-default">Submit</button>
+</form>

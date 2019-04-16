@@ -1,0 +1,17 @@
+﻿@model UploadFileTicketViewModel
+@{
+    ViewBag.Title = "FileUploadTicket";
+}
+
+<h2>Upload a file to the ticket.</h2>
+
+
+<form method="post" enctype="multipart/form-data">
+    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+    @Html.HiddenFor(p => p.TicketId)
+    <div class="form-group">
+        @Html.ValidationMessageFor(input => input.Media)
+        @Html.TextBoxFor(m => m.Media, new { type = "file" })
+    </div>
+    <button type="submit" class="btn btn-default">Upload</button>
+</form>

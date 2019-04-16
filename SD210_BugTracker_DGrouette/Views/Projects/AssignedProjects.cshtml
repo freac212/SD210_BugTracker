@@ -10,7 +10,7 @@
             $('#assignedProjectsDisplay').DataTable({
                 "columnDefs": [
                     {
-                        "targets": [2],
+                        "targets": [3, 4],
                         "orderable": false
                     }
                 ]
@@ -35,6 +35,11 @@
             {
                 <th></th>
             }
+            @if (ProjectHelper.IsAdminOrManager(User))
+            {
+                <th></th>
+                <th></th>
+            }
         </tr>
     </thead>
     <tbody>
@@ -47,6 +52,11 @@
                 @if (User.IsInRole(ProjectConstants.SubmitterRole))
                 {
                     <td><a href="@Url.Action("CreateTicket", "Ticket", new { projectId = project.Id })">Add Ticket</a></td>
+                }
+                @if (ProjectHelper.IsAdminOrManager(User))
+                {
+                    <td><a href="@Url.Action("UserProjectAssignment", "Projects", new { id = project.Id})"><i class="fas fa-user-plus"></i></a></td>
+                    <td><a href="@Url.Action("EditProject", "Projects", new { id = project.Id})"><i class="fas fa-edit"></i></a></td>
                 }
             </tr>
         }

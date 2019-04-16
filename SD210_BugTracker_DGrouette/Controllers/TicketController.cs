@@ -3,14 +3,17 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using SD210_BugTracker_DGrouette.Models;
 using SD210_BugTracker_DGrouette.Models.Domain;
+using SD210_BugTracker_DGrouette.Models.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
 namespace SD210_BugTracker_DGrouette.Controllers
 {
+    [Authorize] // Logged in users
     public class TicketController : Controller
     {
         public ApplicationUserManager UserManager => HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
@@ -91,7 +94,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             var project = DbContext.Projects.FirstOrDefault(proj => proj.Id == newTicket.ProjectId);
 
             if (project is null)
-                return View();
+                return RedirectToAction("AssignedProjects", "Projects");
 
             // Get Users to assign to the Ticket (Must be in Devs Role) ++Q
             // set Creator to current User
@@ -118,26 +121,8 @@ namespace SD210_BugTracker_DGrouette.Controllers
 
         // GET: Ticket
         [HttpGet]
-        [Authorize] // Ensure only logged in users can access this.
         public ActionResult ListTickets()
         {
-            // Ticket ViewModel
-            //  Name
-            //  Description
-            //  Id
-            //  ProjectName
-            //  ProjectId
-            //  DateCreated
-            //  DateUpdated
-            //  Type
-            //  Status
-            //  Priority
-            //  CreatorName
-            //  AssignedDevId
-            //  AssignedDevName
-
-            // Else -> show Assigned + Created
-
             // Assigned Tickets -> all users
             // User Created Tickets -> all users
             // All Tickets -> if Admin/ PM (Also send all related ID data here too.)
@@ -146,56 +131,285 @@ namespace SD210_BugTracker_DGrouette.Controllers
             // If the user is an admin/ PM they have access to more functionallity
             // than regular users, such as edit ticket, which require Id's. So the 
             // MappedTicketsAdmin maps the ticket with related Id's where the 
-            // 
+           
             var listsOfTickets = new ListTicketsViewModel();
             var userId = User.Identity.GetUserId();
 
-            if (ProjectHelper.UserIsAdminOrManager(User))
+            if (ProjectHelper.IsAdminOrManager(User))
             {
-                listsOfTickets.AllTickets = MapTickets(DbContext.Tickets.ToList());
+                listsOfTickets.AllTickets = TicketHelper.MapTickets(DbContext.Tickets.ToList(), User);
 
-                listsOfTickets.AssignedTickets = MapTickets(DbContext.Tickets
+                listsOfTickets.AssignedTickets = TicketHelper.MapTickets(DbContext.Tickets
                     .Where(p => p.AssignedToId == userId)
-                    .ToList());
+                    .ToList(), User);
 
-                listsOfTickets.CreatedTickets = MapTickets(DbContext.Tickets
+                listsOfTickets.CreatedTickets = TicketHelper.MapTickets(DbContext.Tickets
                     .Where(p => p.CreatedById == userId)
-                    .ToList());
+                    .ToList(), User);
             }
             else
             {
-                listsOfTickets.AssignedTickets = MapTickets(DbContext.Tickets
-                    .Where(p => p.AssignedToId == userId)
-                    .ToList());
+                // All tickets can be the all the tickets from the projects the person is assigned too
+                // get project Id's of the projects this user is assigned to, get the tickets that matches those project id's
 
-                listsOfTickets.CreatedTickets = MapTickets(DbContext.Tickets
+                var tickets = DbContext.Projects
+                    .Where(i => i.Users.Any(p => p.Id == userId))
+                    .SelectMany(p => p.Tickets)
+                    .ToList();
+
+                listsOfTickets.AllTickets = TicketHelper.MapTickets(tickets, User);
+
+                listsOfTickets.AssignedTickets = TicketHelper.MapTickets(DbContext.Tickets
+                    .Where(p => p.AssignedToId == userId)
+                    .ToList(), User);
+
+                listsOfTickets.CreatedTickets = TicketHelper.MapTickets(DbContext.Tickets
                     .Where(p => p.CreatedById == userId)
-                    .ToList());
+                    .ToList(), User);
             }
 
             return View(listsOfTickets);
         }
 
-        static List<TicketViewModel> MapTickets(List<Tickets> tickets)
+        [HttpGet]
+        public ActionResult DetailsTicket(int? ticketId)
         {
-            return tickets.Select(ticket =>
-                   new TicketViewModel()
-                   {
-                       Id = ticket.Id,
-                       Title = ticket.Title,
-                       Description = ticket.Description,
-                       ProjectTitle = ticket.Project.Title,
-                       ProjectId = ticket.ProjectId,
-                       DateCreated = ticket.DateCreated,
-                       DateUpdated = ticket.DateUpdated,
-                       CreatedByDisplayName = ticket.CreatedBy.DisplayName,
-                       CreatedById = ticket.CreatedBy.Id,
-                       AssignedToDisplayName = ticket.AssignedTo?.DisplayName,
-                       AssignedToId = ticket?.AssignedTo?.Id,
-                       TicketPriority = ticket.TicketPriority,
-                       TicketStatus = ticket.TicketStatus,
-                       TicketType = ticket.TicketType,
-                   }).ToList();
+            if (ticketId is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
+
+            if (ticket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            TicketViewModel viewModelTicket = null;
+
+            if (TicketHelper.UserCanViewDetails(User, ticket))
+                viewModelTicket = TicketHelper.MapTicket(ticket, User);
+            else
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            if (viewModelTicket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            return View(viewModelTicket);
+        }
+
+        [HttpGet]
+        public ActionResult EditTicket(int? ticketId)
+        {
+            if (ticketId is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
+
+            if (ticket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            EditTicketViewModel viewModelTicket;
+
+            if (TicketHelper.UserCanAccessTicket(User, ticket))
+                viewModelTicket = TicketHelper.TicketDataByRole(ticket, User, RoleManager, UserManager, DbContext);
+            else
+                return RedirectToAction("AssignedProjects", "Projects");
+
+
+            if (viewModelTicket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            return View(viewModelTicket);
+        }
+
+        [HttpPost]
+        public ActionResult EditTicket(EditTicketViewModel formData)
+        {
+            if (!ModelState.IsValid)
+            {
+                EditTicketViewModel viewModelTicket = TicketHelper.TicketDataByRole(formData, User, RoleManager, UserManager, DbContext);
+                return View(viewModelTicket);
+            }
+
+            if (formData is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == formData.Id);
+
+            if (ticket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            // apply changes
+            if (ProjectHelper.IsAdminOrManager(User))
+            {
+                ticket.Title = formData.Title;
+                ticket.Description = formData.Description;
+                ticket.DateUpdated = DateTime.Now;
+                ticket.ProjectId = formData.ProjectId;
+                ticket.TicketStatusId = (int)formData.TicketStatusId;
+                ticket.TicketPriorityId = formData.TicketPriorityId;
+                ticket.TicketTypeId = formData.TicketTypeId;
+                ticket.AssignedToId = formData.AssignedToId;
+            }
+            else if (ProjectHelper.IsDevOrSubmitter(User))
+            {
+                ticket.Title = formData.Title;
+                ticket.Description = formData.Description;
+                ticket.DateUpdated = DateTime.Now;
+                ticket.ProjectId = formData.ProjectId;
+                ticket.TicketPriorityId = formData.TicketPriorityId;
+                ticket.TicketTypeId = formData.TicketTypeId;
+            }
+
+            // save to db
+            DbContext.SaveChanges();
+
+            // return to details page of the ticket.
+            return RedirectToAction("DetailsTicket", "Ticket", new { ticketId = ticket.Id });
+        }
+
+        [HttpGet]
+        public ActionResult CommentTicket(int? ticketId)
+        {
+            if (ticketId is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            //var user = UserManager.FindById(User.Identity.GetUserId());
+            var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
+
+            if (ticket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            // Do user validation
+            // Admin+PM -> ALL tickets
+            // Dev -> Tickets they're assigned too
+            // Submitter -> TIckets they've created
+            // else return to home.
+
+            if (TicketHelper.UserCanAccessTicket(User, ticket))
+            {
+                var comment = new CreateCommentTicketViewModel()
+                {
+                    TicketId = (int)ticketId
+                };
+
+                return View(comment);
+            }
+            else
+            {
+                return RedirectToAction("AssignedProjects", "Projects");
+            }
+        }
+
+        [HttpPost]
+        public ActionResult CommentTicket(CreateCommentTicketViewModel formData)
+        {
+            if (formData is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == formData.TicketId);
+
+            if (ticket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            if (TicketHelper.UserCanAccessTicket(User, ticket))
+            {
+                ticket.Comments.Add(new Comment
+                {
+                    UserId = User.Identity.GetUserId(),
+                    DateCreated = DateTime.Now,
+                    CommentData = formData.Comment,
+                });
+
+                DbContext.SaveChanges();
+
+                return RedirectToAction("DetailsTicket", "Ticket", new { ticketId = ticket.Id });
+            }
+            else
+            {
+                return RedirectToAction("AssignedProjects", "Projects");
+            }
+        }
+
+
+        [HttpGet]
+        public ActionResult FileUploadTicket(int? ticketId)
+        {
+            if (ticketId is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            //var user = UserManager.FindById(User.Identity.GetUserId());
+
+            var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
+
+            if (ticket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            if (TicketHelper.UserCanAccessTicket(User, ticket))
+            {
+                var file = new UploadFileTicketViewModel()
+                {
+                    TicketId = (int)ticketId
+                };
+
+                return View(file);
+            }
+            else
+            {
+                return RedirectToAction("AssignedProjects", "Projects");
+            }
+        }
+
+
+        [HttpPost]
+        public ActionResult FileUploadTicket(UploadFileTicketViewModel formData)
+        {
+            if (formData is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == formData.TicketId);
+
+            if (ticket is null)
+                return RedirectToAction("AssignedProjects", "Projects");
+
+            if (TicketHelper.UserCanAccessTicket(User, ticket) && formData.Media != null)
+            {
+                var uploadFolder = Server.MapPath("~/Upload/");
+                var user = UserManager.FindById(User.Identity.GetUserId());
+
+                // If the Upload directory doesn't exist, create it.
+                if (!Directory.Exists(uploadFolder))
+                {
+                    Directory.CreateDirectory(uploadFolder);
+                }
+
+                // New file name, random gen.
+                var fileNameGen = Guid.NewGuid();
+
+                // The GUID ensure no file will have the same name.
+                var fullFilePathWName = uploadFolder + fileNameGen + Path.GetExtension(formData.Media.FileName);
+
+                // Save file to Upload folder
+                formData.Media.SaveAs(fullFilePathWName);
+
+                // Set  media URL to later access the file. Then save to DB.
+
+                // Add file url to list of urls.
+                // Have an object storing the name of the file, and the path of the file.
+                ticket.Files.Add(new TicketFile()
+                {
+                    MediaUrl = "~/Upload/" + fileNameGen + Path.GetExtension(formData.Media.FileName),
+                    Title = formData.Media.FileName,
+                    TicketId = ticket.Id,
+                    UserId = user.Id
+                });
+
+                DbContext.SaveChanges();
+
+                return RedirectToAction("DetailsTicket", "Ticket", new { ticketId = ticket.Id });
+            }
+            else
+            {
+                return RedirectToAction("AssignedProjects", "Projects");
+            }
         }
     }
 }

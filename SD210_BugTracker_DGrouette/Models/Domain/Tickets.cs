@@ -28,5 +28,14 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
 
         public virtual ApplicationUser AssignedTo { get; set; }
         public string AssignedToId { get; set; }
+
+        public virtual List<Comment> Comments { get; set; }
+        public virtual List<TicketFile> Files { get; set; }
+
+        public Tickets()
+        {
+            Comments = new List<Comment>();
+            Files = new List<TicketFile>();
+        }
     }
 }

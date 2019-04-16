@@ -40,13 +40,17 @@
         <input type="button" value="Create New Project" onclick="location.href='@Url.Action("Create", "Projects")'" class="btn-default col-lg-12" style="margin: 20px 0;"/>
     }*@
 
-@if (Model != null)
+@if (Model != null && ProjectHelper.IsAdminOrManager(User))
 {
     <table id="projectsDisplay" class="table table-striped">
         <thead>
             <tr>
                 <th>Title</th>
                 <th>User Count</th>
+                @if (User.IsInRole(ProjectConstants.SubmitterRole))
+                {
+                    <th></th>
+                }
                 <th></th>
                 <th></th>
             </tr>
@@ -54,13 +58,17 @@
         <tbody>
             @foreach (var project in Model)
             {
-                <tr>
-                    @* Example Cells *@
-                    <td>@project.Title</td>
-                    <td>@project.UserCount</td>
-                    <td><a href="@Url.Action("UserProjectAssignment", "Projects", new { id = project.Id})"><i class="fas fa-user-plus"></i></a></td>
-                    <td><a href="@Url.Action("EditProject", "Projects", new { id = project.Id})"><i class="fas fa-edit"></i></a></td>
-                </tr>
+            <tr>
+                @* Example Cells *@
+                <td>@project.Title</td>
+                <td>@project.UserCount</td>
+                @if (User.IsInRole(ProjectConstants.SubmitterRole))
+                {
+                    <td><a href="@Url.Action("CreateTicket", "Ticket", new { projectId = project.Id })">Add Ticket</a></td>
+                }
+                <td><a href="@Url.Action("UserProjectAssignment", "Projects", new { id = project.Id})"><i class="fas fa-user-plus"></i></a></td>
+                <td><a href="@Url.Action("EditProject", "Projects", new { id = project.Id})"><i class="fas fa-edit"></i></a></td>
+            </tr>
             }
         </tbody>
     </table>

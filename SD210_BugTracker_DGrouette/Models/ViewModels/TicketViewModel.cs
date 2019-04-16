@@ -1,4 +1,5 @@
 ﻿using SD210_BugTracker_DGrouette.Models.Domain;
+using SD210_BugTracker_DGrouette.Models.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,5 +27,12 @@ namespace SD210_BugTracker_DGrouette.Models
         public string AssignedToDisplayName { get; set; }
         public string AssignedToId { get; set; }
 
+        public bool? CanEdit { get; set; }
+        public bool? CanComment { get; set; }
+        public bool? CanAddFile { get; set; }
+
+
+        public List<CommentTicketViewModel> Comments { get; set; }
+        public List<FileTicketViewModel> Files { get; set; }
     }
 }

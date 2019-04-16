@@ -40,6 +40,15 @@ namespace SD210_BugTracker_DGrouette.Migrations
             const string userWithAllRolesUserName = "test@test.com";
             const string userWithAllRolesPS = "Password-1";
 
+            const string managerUserName = "manager@mybugtracker.com";
+            const string managerPS = "Password-1";
+
+            const string developerUserName = "developer@mybugtracker.com";
+            const string developerPS = "Password-1";
+
+            const string submitterUserName = "submitter@mybugtracker.com";
+            const string submitterPS = "Password-1";
+
             // Check if Roles exists, else create it
             context.Roles.AddOrUpdate(p => p.Name, new IdentityRole(ProjectConstants.AdminRole));
             context.Roles.AddOrUpdate(p => p.Name, new IdentityRole(ProjectConstants.ManagerRole));
@@ -61,12 +70,24 @@ namespace SD210_BugTracker_DGrouette.Migrations
                 ProjectConstants.SubmitterRole
             }, UserManager);
 
+            ApplicationUser managerUser = SeedUser(managerUserName, managerUserName, managerPS);
+            // Verify this users role
+            VerifyUserRole(managerUser, ProjectConstants.ManagerRole, UserManager);
+
+            ApplicationUser developerUser = SeedUser(developerUserName, developerUserName, developerPS);
+            // Verify this users role
+            VerifyUserRole(developerUser, ProjectConstants.DeveloperRole, UserManager);
+
+            ApplicationUser submitterUser = SeedUser(submitterUserName, submitterUserName, submitterPS);
+            // Verify this users role
+            VerifyUserRole(submitterUser, ProjectConstants.SubmitterRole, UserManager);
+
             // ============== Seeded Projects ==============
             Projects project = new Projects()
             {
                 Id = 1,
                 Title = "Seeded Project",
-                Users = new List<ApplicationUser> { adminUser }
+                Users = new List<ApplicationUser> { adminUser, managerUser, developerUser, submitterUser }
             };
 
             if (!Context.Projects.ToList().Any(p => p.Title == project.Title))

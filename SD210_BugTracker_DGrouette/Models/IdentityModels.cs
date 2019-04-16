@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -18,6 +19,7 @@ namespace SD210_BugTracker_DGrouette.Models
         public virtual List<Tickets> CreatedTickets { get; set; }
         [InverseProperty(nameof(Tickets.AssignedTo))]
         public virtual List<Tickets> AssignedTickets { get; set; }
+        public virtual List<Comment> Comments { get; set; }
 
         public virtual string DisplayName { get; set; }
 
@@ -26,6 +28,7 @@ namespace SD210_BugTracker_DGrouette.Models
             Projects = new List<Projects>();
             CreatedTickets = new List<Tickets>();
             AssignedTickets = new List<Tickets>();
+            Comments = new List<Comment>();
         }
 
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager)
@@ -43,7 +46,7 @@ namespace SD210_BugTracker_DGrouette.Models
             : base("DefaultConnection", throwIfV1Schema: false)
         {
         }
-
+        public DbSet<Comment> Comments { get; set; }
         public DbSet<Projects> Projects { get; set; } // Allows access of users projects from the DB
         public DbSet<Tickets> Tickets { get; set; }
         public DbSet<TicketStatuses> TicketStatuses { get; set; }

@@ -1,0 +1,59 @@
+﻿@model EditTicketViewModel
+@{
+    ViewBag.Title = "Ticket Editor";
+}
+
+<h4>Edit this ticket: </h4>
+
+<form method="post" enctype="multipart/form-data" class="form-vertical">
+    <div class="form-group">
+        @Html.ValidationSummary()
+    </div>
+
+    @Html.HiddenFor(p => p.Id)
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.Title, "Ticket Title: ")
+        @Html.TextBoxFor(p => p.Title, new { placeholder = "Title of the Ticket...", @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.Description, "Ticket Description: ")
+        @Html.TextAreaFor(p => p.Description, new { placeholder = "Description of the ticket...", @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.TicketTypeId, "Ticket Type: ")
+        @Html.DropDownListFor(p => p.TicketTypeId, Model.TicketTypes, "Select Ticket Type", new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.TicketPriorityId, "Ticket Priority: ")
+        @Html.DropDownListFor(p => p.TicketPriorityId, Model.TicketPriorities, "Select Priority Type", new { @class = "form-control" })
+    </div>
+    @if (ProjectHelper.IsAdminOrManager(User))
+    {
+        <div class="form-group">
+            @Html.LabelFor(p => p.TicketStatusId, "Ticket Status: ")
+            @Html.DropDownListFor(p => p.TicketStatusId, Model.TicketStatuses, "Select Status Type", new { @class = "form-control" })
+        </div>
+    }
+
+    <div class="form-group">
+        @Html.LabelFor(p => p.ProjectId, "Project Assignment: ")
+        @Html.DropDownListFor(p => p.ProjectId, Model.Projects, "Assign this ticket to a different project", new { @class = "form-control" })
+    </div>
+
+    @if (ProjectHelper.IsAdminOrManager(User))
+    {
+        @* CAREFUL -> THIS VALUE CAN BE NULL! *@
+        <div class="form-group">
+            @Html.LabelFor(p => p.AssignedToId, "Dev Assignment: ")
+            @Html.DropDownListFor(p => p.AssignedToId, Model.DevUsers, "Assign a Dev to this ticket", new { @class = "form-control" })
+        </div>
+
+        @*@Html.HiddenFor(p => p.ProjectId)*@
+    }
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+

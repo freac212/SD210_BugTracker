@@ -1,0 +1,141 @@
+﻿@model TicketViewModel
+@{
+    ViewBag.Title = "DetailsTicket";
+}
+
+@section css {
+    <link rel="stylesheet" href="~/Content/jquery.dataTables.min.css" />
+}
+
+@section Scripts {
+    <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#filesTable').DataTable();
+        });
+    </script>
+}
+
+<h2>Ticket Details</h2>
+
+<dl class="dl-horizontal">
+    <dt>Id:</dt>
+    <dd>@Model.Id</dd>
+    <dt>Title:</dt>
+    <dd>@Model.Title</dd>
+    <dt>Description:</dt>
+    <dd>@Model.Description</dd>
+    <dt>Date Created:</dt>
+    <dd>@Model.DateCreated</dd>
+    <dt>Date Updated:</dt>
+    <dd>@Model.DateUpdated</dd>
+    <dt>Type:</dt>
+    <dd>@Model.TicketType.Name</dd>
+    <dt>Status:</dt>
+    <dd>@Model.TicketStatus.Name</dd>
+    <dt>Priority:</dt>
+    <dd>@Model.TicketPriority.Name</dd>
+    <dt>Creator:</dt>
+    <dd>@Model.CreatedByDisplayName</dd>
+    <dt>Developer assigned to the ticket:</dt>
+    <dd>@Model.AssignedToDisplayName</dd>
+    <dt>Project:</dt>
+    <dd>@Model.ProjectTitle</dd>
+</dl>
+
+@* Edit button here. *@
+@if ((bool)Model.CanEdit)
+{
+    <div class="container-fluid">
+        @Html.ActionLink("Edit Ticket", "EditTicket", new { ticketId = Model.Id })
+    </div>
+}
+@if ((bool)Model.CanAddFile)
+{
+    @* Have file manager here *@
+    <div class="container-fluid">
+        @Html.ActionLink("Add File", "FileUploadTicket", new { ticketId = Model.Id })
+    </div>
+}
+@if ((bool)Model.CanComment)
+{
+    @* Have comments here *@
+    <div class="container-fluid">
+        @Html.ActionLink("Add Comment", "CommentTicket", new { ticketId = Model.Id })
+    </div>
+}
+
+
+@if (Model.Files.Any())
+{
+    <div class="page-header border-bottom row" style="margin-bottom: 20px;">
+        <div class="col-6">
+            <h3> Files </h3>
+        </div>
+        <div class="col-6 d-flex justify-content-end">
+            <span class="align-self-md-end">@Model.Files.Count files</span>
+        </div>
+    </div>
+
+
+    <table id="filesTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>File Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in Model.Files)
+            {
+                <tr>
+                    @* Example Cells *@
+                    <td>
+                        <a href="@Url.Content(file.MediaUrl)">@file.MediaTitle</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="page-header border-bottom row" style="margin-bottom: 20px;">
+        <div class="col-6">
+            <h3> No Files </h3>
+        </div>
+    </div>
+}
+
+
+@if (Model.Comments.Any())
+{
+    <div class="page-header border-bottom row" style="margin-bottom: 20px;">
+        <div class="col-6">
+            <h3> Comments </h3>
+        </div>
+        <div class="col-6 d-flex justify-content-end">
+            <span class="align-self-md-end">@Model.Comments.Count comments</span>
+        </div>
+    </div>
+
+    <div class="media row">
+        @foreach (var comment in Model.Comments)
+        {
+            <div class="col-12 border-bottom" style="margin-bottom: 2%;">
+                <div class="d-flex justify-content-between">
+                    <h5 class="media-heading">@comment.CreatorDisplayName</h5>
+                    <span class="small">@comment.DateCreated.ToString("MMM dd, yyyy @ h:mmtt")</span>
+                </div>
+                <p style="margin: unset;">@comment.Comment</p>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="page-header border-bottom row" style="margin-bottom: 20px;">
+        <div class="col-6">
+            <h3> No Comments </h3>
+        </div>
+    </div>
+}
