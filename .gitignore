@@ -5,6 +5,7 @@
 
 # Additional files to ignore 
 private.config
+Upload/
 
 # User-specific files
 *.rsuser
