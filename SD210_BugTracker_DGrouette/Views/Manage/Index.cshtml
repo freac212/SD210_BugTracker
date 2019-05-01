@@ -18,10 +18,19 @@
         <dd>@Model.Email</dd>
     </dl>
     <dl class="dl-horizontal">
+        @if (ProjectHelper.IsAdminOrManager(User))
+        {
+            <dt>Ticket Updates:</dt>
+            <dd>
+                [
+                @Html.ActionLink("Change which tickets you want to get updates for", "TicketNotifications", "Ticket")
+                ]
+            </dd>
+        }
         <dt>UserName:</dt>
         <dd>
             [
-                @Html.ActionLink("Change your Display Name", "ChangeDisplayName")
+            @Html.ActionLink("Change your Display Name", "ChangeDisplayName")
             ]
         </dd>
         <dt>Password:</dt>

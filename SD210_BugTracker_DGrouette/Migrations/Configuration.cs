@@ -83,7 +83,7 @@ namespace SD210_BugTracker_DGrouette.Migrations
             VerifyUserRole(submitterUser, ProjectConstants.SubmitterRole, UserManager);
 
             // ============== Seeded Projects ==============
-            Projects project = new Projects()
+            Project project = new Project()
             {
                 Id = 1,
                 Title = "Seeded Project",

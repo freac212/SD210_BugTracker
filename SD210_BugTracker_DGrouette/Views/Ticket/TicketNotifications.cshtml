@@ -1,0 +1,68 @@
+﻿@model List<TicketNotificationViewModel>
+
+@{
+    ViewBag.Title = "Ticket Notifications";
+    ViewBag.Description = "Check the boxes of tickets you want to recieve updates about, then click the submit button";
+}
+
+@section Scripts {
+    <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#ticketNotificationDisplay').DataTable({
+                "columnDefs": [
+                    {
+                        "targets": [1],
+                        "orderable": false
+                    }
+                ]
+            });
+        });
+    </script>
+}
+
+@section css {
+    <link rel="stylesheet" href="~/Content/jquery.dataTables.min.css" />
+}
+
+<form method="post" enctype="multipart/form-data">
+    <table id="ticketNotificationDisplay">
+        <thead>
+            <tr>
+                <th>Ticket Title</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @*@foreach (var notification in Model)
+                {
+                    <tr>
+                        <td>
+                            @notification.TicketTitle
+                        </td>
+                        <td>
+                            @Html.HiddenFor(p => notification.TicketId)
+                            @Html.CheckBoxFor(p => notification.Selected)
+                        </td>
+                    </tr>
+                }*@
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>
+                        @Model[i].TicketTitle
+                        @*@Html.LabelFor(p => p[i].TicketTitle, new { name = $"[{i}].TicketTitle" })*@
+                    </td>
+                    <td>
+                        @Html.HiddenFor(p => p[i].TicketId, new { name = $"[{i}].TicketId" })
+                        @Html.CheckBoxFor(p => p[i].Selected, new { name = $"[{i}].Selected" })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+
+
+

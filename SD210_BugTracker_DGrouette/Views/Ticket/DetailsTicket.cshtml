@@ -1,6 +1,6 @@
 ﻿@model TicketViewModel
 @{
-    ViewBag.Title = "DetailsTicket";
+    ViewBag.Title = "Ticket Details";
 }
 
 @section css {
@@ -13,10 +13,60 @@
         $(document).ready(function () {
             $('#filesTable').DataTable();
         });
+
+        function updateCommentCount() {
+            let num = Number($("#comment-count").text());
+            if (num > 0) {
+                $("#comment-count").text(--num);
+            }
+        }
+        function updateFileCount() {
+            let num = Number($("#file-count").text());
+            if (num > 0) {
+                $("#file-count").text(--num);
+            }
+        }
     </script>
+
+    @foreach (var comment in Model.Comments)
+    {
+        var commentId = comment.Id + "_comment";
+        var commentFormId = "comment_" + comment.Id + "_form";
+        var commentHtmlContId = comment.Id + "_comment_cont";
+
+        <script type="text/javascript">
+                    $("#@commentId").click(function () {
+                            $.ajax({
+                                url:'/Ticket/DeleteComment/',
+                                type:'post',
+                                data:$('#@commentFormId').serialize()
+                            });
+                        $("#@commentHtmlContId").hide();
+                        updateCommentCount();
+                    });
+        </script>
+    }
+    @foreach (var file in Model.Files)
+    {
+        var fileHtmlId = file.Id + "_file";
+        var formId = "file_" + file.Id + "_form";
+        var fileHtmlContId = file.Id + "_file_cont";
+
+        <script type="text/javascript">
+                    $("#@fileHtmlId").click(function () {
+                            $.ajax({
+                                url:'/Ticket/DeleteFile/',
+                                type:'post',
+                                data:$('#@formId').serialize()
+                            });
+                        $("#@fileHtmlContId").hide();
+                        updateFileCount();
+                    });
+        </script>
+    }
 }
 
-<h2>Ticket Details</h2>
+<h3 style="margin: unset !important;">Ticket: @Model.Title</h3>
 
 <dl class="dl-horizontal">
     <dt>Id:</dt>
@@ -66,36 +116,57 @@
 }
 
 
+
+
 @if (Model.Files.Any())
 {
-    <div class="page-header border-bottom row" style="margin-bottom: 20px;">
-        <div class="col-6">
-            <h3> Files </h3>
+    <div>
+        <div class="page-header border-bottom row" style="margin-bottom: 20px;">
+            <div class="col-6">
+                <h3> Files </h3>
+            </div>
+            <p class="align-self-md-end">
+                <span class="align-self-md-end" id="file-count">
+                    @Model.Files.Count
+                </span>
+                files
+            </p>
         </div>
-        <div class="col-6 d-flex justify-content-end">
-            <span class="align-self-md-end">@Model.Files.Count files</span>
-        </div>
-    </div>
 
 
-    <table id="filesTable" class="table table-striped">
-        <thead>
-            <tr>
-                <th>File Name</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var file in Model.Files)
-            {
+        <table id="filesTable" class="table table-striped">
+            <thead>
                 <tr>
-                    @* Example Cells *@
-                    <td>
-                        <a href="@Url.Content(file.MediaUrl)">@file.MediaTitle</a>
-                    </td>
+                    <th>File Name</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var file in Model.Files)
+                {
+                    var fileHtmlId = file.Id + "_file";
+                    var formId = "file_" + file.Id + "_form";
+                    var fileHtmlContId = file.Id + "_file_cont";
+
+                    <tr id="@fileHtmlContId">
+                        <td>
+                            <a href="@Url.Content(file.MediaUrl)">@file.MediaTitle</a>
+                            @* If user is admin/ PM -> or is Creator of comment *@
+                            @if (file.CanDeleteFile)
+                            {
+                                using (Html.BeginForm("DeleteFile", "Ticket", null, FormMethod.Post, new { id = $"{formId}" }))
+                                {
+                                    @Html.Hidden("itemId", file.Id)
+                                    @Html.Hidden("ticketId", Model.Id)
+                                    @Html.Hidden("fileName", file.MediaFileName)
+                                    <i class="fa fa-trash" id="@fileHtmlId"></i>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 else
 {
@@ -107,35 +178,101 @@ else
 }
 
 
-@if (Model.Comments.Any())
-{
-    <div class="page-header border-bottom row" style="margin-bottom: 20px;">
-        <div class="col-6">
-            <h3> Comments </h3>
-        </div>
-        <div class="col-6 d-flex justify-content-end">
-            <span class="align-self-md-end">@Model.Comments.Count comments</span>
-        </div>
-    </div>
 
-    <div class="media row">
-        @foreach (var comment in Model.Comments)
-        {
-            <div class="col-12 border-bottom" style="margin-bottom: 2%;">
-                <div class="d-flex justify-content-between">
-                    <h5 class="media-heading">@comment.CreatorDisplayName</h5>
-                    <span class="small">@comment.DateCreated.ToString("MMM dd, yyyy @ h:mmtt")</span>
+<div class="row">
+    @if (Model.Histories.Any())
+    {
+        <div class="col-lg-6">
+            <div class="module">
+                <div class="module-head" style="display: flex; justify-content: space-between">
+                    <div>
+                        <h3> Ticket Histories </h3>
+                    </div>
+                    <div>
+                        <span class="align-self-md-end">@Model.Histories.Count Changes</span>
+                    </div>
                 </div>
-                <p style="margin: unset;">@comment.Comment</p>
+                <div class="module-body">
+                    @foreach (var history in Model.Histories)
+                    {
+                        <h5>Changes by: @history.UserDisplayName</h5>
+                        <div class="col-sm-12 border-bottom" style="margin-bottom: 15px;">
+                            <span class="small">@history.DateUpdated.ToString("MMM dd, yyyy @ h:mmtt")</span>
+                            @foreach (var detail in history.HistoryDetails)
+                            {
+                                <div style="margin: unset;">
+                                    <span class="small col-sm-12">@detail.Property: </span>
+                                    <span class="small col-sm-12">@detail.OldValue -> @detail.NewValue</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
-        }
-    </div>
-}
-else
-{
-    <div class="page-header border-bottom row" style="margin-bottom: 20px;">
-        <div class="col-6">
-            <h3> No Comments </h3>
         </div>
-    </div>
-}
+    }
+    else
+    {
+        <div class="page-header border-bottom row" style="margin-bottom: 20px;">
+            <div class="col-6">
+                <h3> This ticket is extra fresh! (No history) </h3>
+            </div>
+        </div>
+    }
+
+    @if (Model.Comments.Any())
+    {
+        <div class="col-lg-6">
+            <div class="module">
+                <div class="module-head" style="display: flex; justify-content: space-between">
+                    <div>
+                        <h3> Comments </h3>
+                    </div>
+                    <div>
+                        <div>
+                            <span class="align-self-md-end" id="comment-count">
+                                @Model.Comments.Count
+                            </span>
+                            Comments
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-body">
+                    @foreach (var comment in Model.Comments)
+                    {
+                        var commentId = comment.Id + "_comment";
+                        var commentFormId = "comment_" + comment.Id + "_form";
+                        var commentHtmlContId = comment.Id + "_comment_cont";
+
+                        <div class="col-12 border-bottom" style="margin-bottom: 2%;" id="@commentHtmlContId">
+                            @* If user is admin/ PM -> or is Creator of comment *@
+                            @if (comment.CanDeleteComment)
+                            {
+                                using (Html.BeginForm("DeleteComment", "Ticket", null, FormMethod.Post, new { id = $"{commentFormId}", style="position: absolute; right: 4%;" }))
+                                {
+                                    @Html.Hidden("itemId", comment.Id)
+                                    @Html.Hidden("ticketId", Model.Id)
+                                    <i class="fa fa-trash" id="@commentId"></i>
+                                }
+                            }
+                            <div class="d-flex justify-content-between">
+                                <h5 class="media-heading">@comment.CreatorDisplayName</h5>
+                                <span class="small">@comment.DateCreated.ToString("MMM dd, yyyy @ h:mmtt")</span>
+                            </div>
+                            <p style="margin: unset;">@comment.Comment</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="page-header border-bottom row" style="margin-bottom: 20px;">
+            <div class="col-6">
+                <h3> No Comments </h3>
+            </div>
+        </div>
+    }
+</div>

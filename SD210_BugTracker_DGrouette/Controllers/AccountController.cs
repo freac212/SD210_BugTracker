@@ -54,6 +54,57 @@ namespace SD210_BugTracker_DGrouette.Controllers
             }
         }
 
+        [AllowAnonymous]
+        public ActionResult DemoLogin()
+        {
+            return View();
+        }
+
+        // Logging in a user with a button,
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<ActionResult> DemoLogin(int? roleNum)
+        {
+            if (roleNum is null)
+                return View();
+
+            ApplicationUser user = null;
+
+            switch (roleNum)
+            {
+                case 1:
+                    // Admin
+                    user = await UserManager.FindByNameAsync("admin@mybugtracker.com");
+                    break;
+                case 2:
+                    // Project Manager
+                    user = await UserManager.FindByNameAsync("manager@mybugtracker.com");
+                    break;
+                case 3:
+                    // Developer
+                    user = await UserManager.FindByNameAsync("developer@mybugtracker.com");
+                    break;
+                case 4:
+                    // Submitter
+                    user = await UserManager.FindByNameAsync("submitter@mybugtracker.com");
+                    break;
+                default:
+                    // redirect
+                    return View();
+            }
+
+            if (user != null)
+            {
+                await SignInManager.SignInAsync(user, true, true);
+            } else
+            {
+                return View();
+            }
+
+            // Redirect to dashboard.
+            return RedirectToAction("Index", "Dashboard");
+        }
+
         //
         // GET: /Account/Login
         [AllowAnonymous]

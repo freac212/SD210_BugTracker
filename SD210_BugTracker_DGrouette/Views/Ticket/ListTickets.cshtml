@@ -1,7 +1,18 @@
 ﻿@model ListTicketsViewModel
 @{
-    ViewBag.Title = "ListTickets";
+    ViewBag.Title = "Tickets";
+    ViewBag.SubHeader = "Note: Click the Ticket Id's to access their details";
 }
+
+@if (ProjectHelper.IsAdminOrManager(User))
+{
+    ViewBag.Description = "All Tickets from all Projects (Except from archived projects ofcourse)";
+}
+else
+{
+    ViewBag.Description = "Tickets from Projects you're currently assigned to";
+}
+
 
 
 @section Scripts {
@@ -41,11 +52,11 @@
         });
     </script>
 
-    <script type="text/javascript">
-        $(document).ready(function () {
+    @*<script type="text/javascript">
+            $(document).ready(function () {
 
-        });
-    </script>
+            });
+        </script>*@
 }
 
 @section css {
@@ -53,14 +64,6 @@
     <link href="~/Content/fixedHeader.dataTables.min.css" rel="stylesheet" />
 }
 
-@if (ProjectHelper.IsAdminOrManager(User))
-{
-    <h2>All Tickets</h2>
-}
-else
-{
-    <h2>Tickets from projects you're assigned to</h2>
-}
 <div class="table-responsive">
     <table id="ticketsAllDisplay" class="table table-striped" style="width: 100%;">
         <thead>
@@ -102,7 +105,8 @@ else
         </tbody>
     </table>
 </div>
-@*}*@
+
+
 <h2>Assigned Tickets</h2>
 <div class="table-responsive">
     <table id="ticketsAssignedDisplay" class="table table-striped" style="width: 100%;">
@@ -145,6 +149,8 @@ else
         </tbody>
     </table>
 </div>
+
+
 <h2>Created tickets</h2>
 <div class="table-responsive">
     <table id="ticketsCreatedDisplay" class="table table-striped" style="width: 100%;">

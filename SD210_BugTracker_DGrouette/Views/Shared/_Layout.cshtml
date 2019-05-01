@@ -5,14 +5,14 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Manager - @ViewBag.Title</title>
+    <title>Project Dev Tracker - @ViewBag.Title</title>
     @*<link href="~/Content/TemplateBootstrap/css/bootstrap.min.css" rel="stylesheet" />
         <link href="~/Content/TemplateBootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" />
         <link href="~/Content/TemplateCSS/theme.css" rel="stylesheet" />*@
     <link href="~/Content/TemplateImages/icons/css/font-awesome.css" rel="stylesheet" />
     <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
 
-    @Styles.Render("~/Content/css") @*++Q*@
+    @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
     @Styles.Render("~/Content/fontawesome-free/css/all.min.css")
     @RenderSection("css", false)
@@ -30,9 +30,9 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="@Url.Action("Index", "Projects")">
+                    <a class="navbar-brand" href="@Url.Action("Index", "Project")">
                         <i class="fas fa-users"></i>
-                        Project Manager
+                        Project Development Tracker
                     </a>
                 </div>
 
@@ -48,7 +48,6 @@
 
                     <ul class="nav navbar-nav navbar-right">
                         <!-- Link + Dropdown Menu -->
-                        @*<li><a href="#">Link</a></li>*@
                         @Html.Partial("_LoginPartial")
                     </ul>
                 </div><!-- /.navbar-collapse -->
@@ -67,13 +66,19 @@
                             @if (User.Identity.IsAuthenticated)
                             {
                                 <li>
-
+                                    <a href="@Url.Action("Index", "Dashboard")">
+                                        <i class="menu-icon icon-home"></i>
+                                        Dashboard
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="#projectSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                                        <i class="menu-icon icon-book"></i>
                                         Projects
                                     </a>
                                     <ul class="collapse list-unstyled" id="projectSubmenu">
                                         <li>
-                                            <a href="@Url.Action("AssignedProjects", "Projects")">
+                                            <a href="@Url.Action("AssignedProjects", "Project")">
                                                 <i class="icon-inbox"></i>
                                                 Assigned Projects
                                             </a>
@@ -81,13 +86,13 @@
                                         @if (ProjectHelper.IsAdminOrManager(User))
                                         {
                                             <li>
-                                                <a href="@Url.Action("Index", "Projects")">
+                                                <a href="@Url.Action("Index", "Project")">
                                                     <i class="icon-inbox"></i>
                                                     All Projects
                                                 </a>
                                             </li>
                                             <li>
-                                                <a href="@Url.Action("CreateProject", "Projects")">
+                                                <a href="@Url.Action("CreateProject", "Project")">
                                                     <i class="icon-plus"></i>
                                                     Create New Project
                                                 </a>
@@ -97,9 +102,8 @@
                                 </li>
                                 @* ======== Tickets ======== *@
                                 <li>
-                                    @*@Html.ActionLink("Role Manager", "UsersAndRoles", "Projects")*@
                                     <a href="@Url.Action("ListTickets", "Ticket")">
-                                        <i class="menu-icon icon-edit"></i>
+                                        <i class="menu-icon icon-caret-right"></i>
                                         @* fas fa-user-edit *@
                                         Tickets
                                     </a>
@@ -108,7 +112,6 @@
                             @if (User.IsInRole(ProjectConstants.AdminRole))
                             {
                                 <li>
-                                    @*@Html.ActionLink("Role Manager", "UsersAndRoles", "Projects")*@
                                     <a href="@Url.Action("UsersAndRoles", "Roles")">
                                         <i class="menu-icon icon-edit"></i>
                                         @* fas fa-user-edit *@
@@ -120,8 +123,6 @@
                         <ul class="widget widget-menu unstyled">
                             @if (User.Identity.IsAuthenticated)
                             {
-                                @*Only anonymous/ unregistered users can see this*@
-                                @*<li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>*@
                                 <li>
                                     <a href="javascript:document.getElementById('logoutForm').submit()">
                                         <i class="menu-icon icon-signout"></i>
@@ -144,6 +145,13 @@
                             <div class="module-head">
                                 <h3>@ViewBag.Title</h3>
                             </div>
+                            @if (ViewBag.Description != null)
+                            {
+                                <div class="module-option">
+                                    <p>@ViewBag.Description</p>
+                                    <small><strong>@ViewBag.SubHeader</strong></small>
+                                </div>
+                            }
                             <div class="module-body">
                                 @RenderBody()
                             </div>
@@ -160,7 +168,7 @@
     <!--/.wrapper-->
 
     <div class="footer">
-        <div class="container">
+        <div class="container inner-footer-container">
             <b class="copyright">&copy; 2019 DonnyG</b> All rights reserved.
         </div>
     </div>
@@ -169,11 +177,8 @@
     @RenderSection("scripts", required: false)
 
     @* Template Scripts *@
-    @*@Scripts.Render("~/Scripts/SiteTemplateScripts/jquery-1.9.1.min.js")*@
     @Scripts.Render("~/Scripts/SiteTemplateScripts/jquery-ui-1.10.1.custom.min.js")
     @Scripts.Render("~/bundles/bootstrap")  @*Non template bootstrap*@
-
-    @*@Scripts.Render("~/Content/TemplateBootstrap/js/bootstrap.min.js")*@
     @Scripts.Render("~/Scripts/SiteTemplateScripts/flot/jquery.flot.js")
 </body>
 </html>

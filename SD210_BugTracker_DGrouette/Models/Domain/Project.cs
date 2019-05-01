@@ -5,19 +5,20 @@ using System.Web;
 
 namespace SD210_BugTracker_DGrouette.Models.Domain
 {
-    public class Projects
+    public class Project
     {
         public int Id { get; set; }
         public string Title { get; set; }
+        public bool IsArchived { get; set; }
 
         public virtual List<ApplicationUser> Users { get; set; }
 
-        public virtual List<Tickets> Tickets { get; set; }
+        public virtual List<Ticket> Tickets { get; set; }
 
-        public Projects()
+        public Project()
         {
             Users = new List<ApplicationUser>();
-            Tickets = new List<Tickets>();
+            Tickets = new List<Ticket>();
         }
     }
 }

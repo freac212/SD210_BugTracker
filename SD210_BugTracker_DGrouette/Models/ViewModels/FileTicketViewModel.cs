@@ -9,5 +9,8 @@ namespace SD210_BugTracker_DGrouette.Models.ViewModels
     {
         public string MediaUrl { get; set; }
         public string MediaTitle { get; set; }
+        public string MediaFileName { get; set; }
+        public bool CanDeleteFile { get; set; }
+        public int Id { get; set; }
     }
 }

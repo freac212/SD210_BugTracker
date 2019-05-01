@@ -3,55 +3,54 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using SD210_BugTracker_DGrouette.Models;
 using SD210_BugTracker_DGrouette.Models.Domain;
+using SD210_BugTracker_DGrouette.Models.Filters;
 using SD210_BugTracker_DGrouette.Models.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Web;
 using System.Web.Mvc;
 
 namespace SD210_BugTracker_DGrouette.Controllers
 {
-    [Authorize] // Logged in users
+    [Authorize] // Logged in users only
     public class TicketController : Controller
     {
+        // This is here for my FilterAttributes, allows the use of RedirectToAction()
+        public new RedirectToRouteResult RedirectToAction(string action, string controller)
+        {
+            return base.RedirectToAction(action, controller);
+        }
+
         public ApplicationUserManager UserManager => HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
         public ApplicationDbContext DbContext => HttpContext.GetOwinContext().Get<ApplicationDbContext>();
         public RoleManager<IdentityRole> RoleManager => new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(DbContext));
 
-        // GET: CreateTicket
+
         [HttpGet]
-        // Must be in submitter role to see the creation page.
-        [Authorize(Roles = ProjectConstants.SubmitterRole)]
+        [Authorize(Roles = ProjectConstants.SubmitterRole)] // Must be in submitter role to see the creation page.
+        [IdAuthentication("projectId")]
         public ActionResult CreateTicket(int? projectId)
         {
-            // Get project id
-            // Get Users to assign to the Ticket (Must be in Devs Role)
-            // List of TicketTypes
-            // List of TicketPriorities
-
-            // Rest of CreateTicketViewModel props will be null/ empty
-
-            if (!projectId.HasValue)
-                return View();
-
-            var project = DbContext.Projects.FirstOrDefault(proj => proj.Id == projectId);
+            var project = ProjectHelper.GetProjectById(DbContext, (int)projectId);
 
             if (project is null)
-                return View();
+                return RedirectToDashError();
 
             var ticket = new CreateTicketViewModel()
             {
                 ProjectId = projectId.Value,
-                TicketTypes = DbContext.TicketTypes.Select(p =>
+                TicketTypes = DbContext.TicketTypes.Select(p => // Potentially turn these into methods ++Q
                     new SelectListItem()
                     {
                         Text = p.Name,
                         Value = p.Id.ToString()
 
                     }).ToList(),
-                TicketPriorities = DbContext.TicketPriorities.Select(p =>
+                TicketPriorities = DbContext.TicketPriorities.Select(p => // Potentially turn these into methods ++Q
                     new SelectListItem()
                     {
                         Text = p.Name,
@@ -64,14 +63,13 @@ namespace SD210_BugTracker_DGrouette.Controllers
         }
 
         [HttpPost]
-        // Must be in submitter role to submit a ticket creation
-        [Authorize(Roles = ProjectConstants.SubmitterRole)]
+        [Authorize(Roles = ProjectConstants.SubmitterRole)] // Must be in submitter role to submit a ticket creation
         public ActionResult CreateTicket(CreateTicketViewModel newTicket)
         {
 
             if (!ModelState.IsValid)
             {
-                newTicket.TicketTypes = DbContext.TicketTypes.Select(p =>
+                newTicket.TicketTypes = DbContext.TicketTypes.Select(p => // Potentially turn these into methods ++Q
                     new SelectListItem()
                     {
                         Text = p.Name,
@@ -79,7 +77,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
 
                     }).ToList();
 
-                newTicket.TicketPriorities = DbContext.TicketPriorities.Select(p =>
+                newTicket.TicketPriorities = DbContext.TicketPriorities.Select(p => // Potentially turn these into methods ++Q
                     new SelectListItem()
                     {
                         Text = p.Name,
@@ -91,15 +89,15 @@ namespace SD210_BugTracker_DGrouette.Controllers
             }
 
             // Get project id
-            var project = DbContext.Projects.FirstOrDefault(proj => proj.Id == newTicket.ProjectId);
+            var project = ProjectHelper.GetProjectById(DbContext, newTicket.ProjectId);
 
             if (project is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             // Get Users to assign to the Ticket (Must be in Devs Role) ++Q
             // set Creator to current User
             // set status to "Open"
-            var ticket = new Tickets()
+            var ticket = new Ticket()
             {
                 CreatedBy = UserManager.FindById(User.Identity.GetUserId()),
                 DateCreated = DateTime.Now,
@@ -108,63 +106,63 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 ProjectId = newTicket.ProjectId,
                 TicketPriorityId = newTicket.TicketPriorityId,
                 TicketTypeId = newTicket.TicketTypeId,
-                TicketStatus = DbContext.TicketStatuses.FirstOrDefault(p => p.Name == ProjectConstants.TicketStatusOpen),
+                TicketStatus = DbContext.TicketStatuses.FirstOrDefault(p => p.Name == ProjectConstants.TicketStatusOpen)
             };
+
             // Rest of CreateTicketViewModel props will be null/ empty
             project.Tickets.Add(ticket);
 
             DbContext.SaveChanges();
 
-            return RedirectToAction("AssignedProjects", "Projects");
+            // ++Q -> Redirect to ListTickets
+            return RedirectToDash();
         }
 
-
-        // GET: Ticket
         [HttpGet]
         public ActionResult ListTickets()
         {
             // Assigned Tickets -> all users
             // User Created Tickets -> all users
             // All Tickets -> if Admin/ PM (Also send all related ID data here too.)
+            // (Except the archived projects)
 
             // There's two of the same lists being mapped because of the users role.
             // If the user is an admin/ PM they have access to more functionallity
-            // than regular users, such as edit ticket, which require Id's. So the 
-            // MappedTicketsAdmin maps the ticket with related Id's where the 
-           
+
             var listsOfTickets = new ListTicketsViewModel();
             var userId = User.Identity.GetUserId();
 
             if (ProjectHelper.IsAdminOrManager(User))
             {
-                listsOfTickets.AllTickets = TicketHelper.MapTickets(DbContext.Tickets.ToList(), User);
+                listsOfTickets.AllTickets = TicketHelper.MapTickets(DbContext.Tickets.Where(p => !p.Project.IsArchived).ToList(), User);
 
                 listsOfTickets.AssignedTickets = TicketHelper.MapTickets(DbContext.Tickets
-                    .Where(p => p.AssignedToId == userId)
+                    .Where(p => p.AssignedToId == userId && !p.Project.IsArchived)
                     .ToList(), User);
 
                 listsOfTickets.CreatedTickets = TicketHelper.MapTickets(DbContext.Tickets
-                    .Where(p => p.CreatedById == userId)
+                    .Where(p => p.CreatedById == userId && !p.Project.IsArchived)
                     .ToList(), User);
             }
             else
             {
-                // All tickets can be the all the tickets from the projects the person is assigned too
+                // All tickets can be the all the tickets from the projects the person is assigned too minus the archived projects.
+                // (Repurposing a list todo two things depending on roles.)
                 // get project Id's of the projects this user is assigned to, get the tickets that matches those project id's
 
                 var tickets = DbContext.Projects
-                    .Where(i => i.Users.Any(p => p.Id == userId))
+                    .Where(i => i.Users.Any(p => p.Id == userId) && !i.IsArchived)
                     .SelectMany(p => p.Tickets)
                     .ToList();
 
                 listsOfTickets.AllTickets = TicketHelper.MapTickets(tickets, User);
 
                 listsOfTickets.AssignedTickets = TicketHelper.MapTickets(DbContext.Tickets
-                    .Where(p => p.AssignedToId == userId)
+                    .Where(p => p.AssignedToId == userId && !p.Project.IsArchived)
                     .ToList(), User);
 
                 listsOfTickets.CreatedTickets = TicketHelper.MapTickets(DbContext.Tickets
-                    .Where(p => p.CreatedById == userId)
+                    .Where(p => p.CreatedById == userId && !p.Project.IsArchived)
                     .ToList(), User);
             }
 
@@ -172,50 +170,45 @@ namespace SD210_BugTracker_DGrouette.Controllers
         }
 
         [HttpGet]
+        [IdAuthentication("ticketId")]
         public ActionResult DetailsTicket(int? ticketId)
         {
-            if (ticketId is null)
-                return RedirectToAction("AssignedProjects", "Projects");
-
             var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
 
             if (ticket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             TicketViewModel viewModelTicket = null;
 
             if (TicketHelper.UserCanViewDetails(User, ticket))
                 viewModelTicket = TicketHelper.MapTicket(ticket, User);
             else
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             if (viewModelTicket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             return View(viewModelTicket);
         }
 
         [HttpGet]
+        [IdAuthentication("ticketId")]
         public ActionResult EditTicket(int? ticketId)
         {
-            if (ticketId is null)
-                return RedirectToAction("AssignedProjects", "Projects");
-
             var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
 
             if (ticket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             EditTicketViewModel viewModelTicket;
 
             if (TicketHelper.UserCanAccessTicket(User, ticket))
                 viewModelTicket = TicketHelper.TicketDataByRole(ticket, User, RoleManager, UserManager, DbContext);
             else
-                return RedirectToAction("AssignedProjects", "Projects");
-
+                return RedirectToDashError();
 
             if (viewModelTicket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             return View(viewModelTicket);
         }
@@ -225,19 +218,20 @@ namespace SD210_BugTracker_DGrouette.Controllers
         {
             if (!ModelState.IsValid)
             {
+                // Redirect back to the form with the inputed from data, since something is missing or incorrect.
                 EditTicketViewModel viewModelTicket = TicketHelper.TicketDataByRole(formData, User, RoleManager, UserManager, DbContext);
                 return View(viewModelTicket);
             }
 
             if (formData is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == formData.Id);
 
             if (ticket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
-            // apply changes
+            // Apply changes
             if (ProjectHelper.IsAdminOrManager(User))
             {
                 ticket.Title = formData.Title;
@@ -259,31 +253,52 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 ticket.TicketTypeId = formData.TicketTypeId;
             }
 
-            // save to db
+            // Generate history
+            var user = UserManager.FindById(User.Identity.GetUserId());
+            var ticketHistory = TicketHelper.GenerateTicketHistory(DbContext, ticket, user);
+
+            if (ticketHistory != null)
+            {
+                ticket.TicketHistories.Add(ticketHistory);
+                // Notify users (Only if there's a change...)
+                TicketHelper.SendNotificationsToUsers(ticket, "Ticket changes");
+
+                // If a new dev has been assigned to this ticket,
+                // >Remove the old dev from the mailing list,
+                // >Add the new dev,
+                // >Then notify the user they've been assigned to this ticket.
+                if (TicketHelper.IsNewDevAssigned(ticketHistory))
+                {
+                    var history = ticketHistory.TicketHistoryDetails.FirstOrDefault(p => p.Property == "Dev Assigned");
+
+                    var devUserOld = UserManager.Users.FirstOrDefault(p => p.DisplayName == history.OldValue);
+                    var devUserNew = UserManager.Users.FirstOrDefault(p => p.DisplayName == history.NewValue);
+
+                    TicketHelper.ManageDevNotificationAssignment(devUserOld, devUserNew, ticket);
+                    TicketHelper.NotifyUserByEmail(devUserNew, ticket.Title);
+                }
+            }
+
+            // Save to db
             DbContext.SaveChanges();
 
-            // return to details page of the ticket.
-            return RedirectToAction("DetailsTicket", "Ticket", new { ticketId = ticket.Id });
+            // Return to details page of the ticket.
+            return RedirectToAction("DetailsTicket", "Ticket", new
+            {
+                ticketId = ticket.Id
+            });
         }
 
         [HttpGet]
+        [IdAuthentication("ticketId")]
         public ActionResult CommentTicket(int? ticketId)
         {
-            if (ticketId is null)
-                return RedirectToAction("AssignedProjects", "Projects");
-
-            //var user = UserManager.FindById(User.Identity.GetUserId());
             var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
 
             if (ticket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             // Do user validation
-            // Admin+PM -> ALL tickets
-            // Dev -> Tickets they're assigned too
-            // Submitter -> TIckets they've created
-            // else return to home.
-
             if (TicketHelper.UserCanAccessTicket(User, ticket))
             {
                 var comment = new CreateCommentTicketViewModel()
@@ -295,7 +310,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             }
             else
             {
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
             }
         }
 
@@ -303,12 +318,12 @@ namespace SD210_BugTracker_DGrouette.Controllers
         public ActionResult CommentTicket(CreateCommentTicketViewModel formData)
         {
             if (formData is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == formData.TicketId);
 
             if (ticket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             if (TicketHelper.UserCanAccessTicket(User, ticket))
             {
@@ -319,29 +334,30 @@ namespace SD210_BugTracker_DGrouette.Controllers
                     CommentData = formData.Comment,
                 });
 
+                // Notify users of a comment
+                TicketHelper.SendNotificationsToUsers(ticket, "comment");
+
                 DbContext.SaveChanges();
 
                 return RedirectToAction("DetailsTicket", "Ticket", new { ticketId = ticket.Id });
             }
             else
             {
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
             }
         }
 
-
         [HttpGet]
+        [IdAuthentication("ticketId")]
         public ActionResult FileUploadTicket(int? ticketId)
         {
             if (ticketId is null)
-                return RedirectToAction("AssignedProjects", "Projects");
-
-            //var user = UserManager.FindById(User.Identity.GetUserId());
+                return RedirectToDashError();
 
             var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
 
             if (ticket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             if (TicketHelper.UserCanAccessTicket(User, ticket))
             {
@@ -354,21 +370,20 @@ namespace SD210_BugTracker_DGrouette.Controllers
             }
             else
             {
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
             }
         }
-
 
         [HttpPost]
         public ActionResult FileUploadTicket(UploadFileTicketViewModel formData)
         {
             if (formData is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == formData.TicketId);
 
             if (ticket is null)
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
 
             if (TicketHelper.UserCanAccessTicket(User, ticket) && formData.Media != null)
             {
@@ -390,17 +405,19 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 // Save file to Upload folder
                 formData.Media.SaveAs(fullFilePathWName);
 
-                // Set  media URL to later access the file. Then save to DB.
-
-                // Add file url to list of urls.
-                // Have an object storing the name of the file, and the path of the file.
+                // Set media URL to later access the file. Then save to DB.
+                // Have an object storing the name of the file, short URL to the file, and the path of the file.
                 ticket.Files.Add(new TicketFile()
                 {
                     MediaUrl = "~/Upload/" + fileNameGen + Path.GetExtension(formData.Media.FileName),
+                    FileName = fileNameGen.ToString() + Path.GetExtension(formData.Media.FileName),
                     Title = formData.Media.FileName,
                     TicketId = ticket.Id,
                     UserId = user.Id
                 });
+
+                // Notify users of added file
+                TicketHelper.SendNotificationsToUsers(ticket, "File added");
 
                 DbContext.SaveChanges();
 
@@ -408,8 +425,112 @@ namespace SD210_BugTracker_DGrouette.Controllers
             }
             else
             {
-                return RedirectToAction("AssignedProjects", "Projects");
+                return RedirectToDashError();
             }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
+        public ActionResult TicketNotifications()
+        {
+            var user = UserManager.FindById(User.Identity.GetUserId());
+            var notifications = DbContext.Tickets
+                .Where(p => !p.Project.IsArchived)
+                .Select(p => new TicketNotificationViewModel()
+                {
+                    TicketTitle = p.Title,
+                    TicketId = p.Id,
+                    // If user has a notification with this ticketId it's selected
+                    Selected = p.SubscribedUsers.Any(prop => prop.Id == user.Id)
+
+                }).ToList();
+
+            return View(notifications);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
+        public ActionResult TicketNotifications(List<TicketNotificationViewModel> formData)
+        {
+            if (formData is null)
+                return RedirectToDashError();
+
+            var user = UserManager.FindById(User.Identity.GetUserId());
+
+            foreach (var notification in formData)
+            {
+                var ticket = DbContext.Tickets
+                    .Where(p => !p.Project.IsArchived)
+                    .FirstOrDefault(p => p.Id == notification.TicketId);
+
+                if (ticket is null)
+                    return RedirectToDashError();
+
+                if (notification.Selected)
+                    ticket.SubscribedUsers.Add(user);
+                else
+                    ticket.SubscribedUsers.Remove(user);
+            }
+
+            DbContext.SaveChanges();
+
+            return RedirectToAction("Index", "Manage");
+        }
+
+        [HttpPost]
+        [IdAuthentication("itemId", "ticketId")]
+        public ActionResult DeleteComment(int? itemId, int? ticketId)
+        {
+            var ticketComment = DbContext.Comments.FirstOrDefault(p => p.Id == itemId);
+
+            if (ticketComment is null)
+                return RedirectToDashError();
+
+            var user = UserManager.FindById(User.Identity.GetUserId());
+
+            // Ensure the user is either Admin/ PM/ Creator
+            if (ProjectHelper.IsAdminOrManager(User) || ticketComment.UserId == user.Id)
+            {
+                DbContext.Comments.Remove(ticketComment);
+                DbContext.SaveChanges();
+            }
+
+            return RedirectToAction("DetailsTicket", "Ticket", new { ticketId = (int)ticketId });
+        }
+
+        [HttpPost]
+        [IdAuthentication("itemId", "ticketId", "fileName")]
+        public ActionResult DeleteFile(int? itemId, int? ticketId, string fileName)
+        {
+            var ticketFile = DbContext.Files.FirstOrDefault(p => p.Id == itemId);
+
+            if (ticketFile is null)
+                return RedirectToDashError();
+
+            var user = UserManager.FindById(User.Identity.GetUserId());
+
+            // Ensure the user is either Admin/ PM/ Creator
+            if (ProjectHelper.IsAdminOrManager(User) || ticketFile.UserId == user.Id)
+            {
+                var uploadFolder = Server.MapPath("~/Upload/");
+                var fileWithPath = uploadFolder + fileName;
+
+                System.IO.File.Delete(Path.Combine(uploadFolder, fileWithPath));
+
+                DbContext.Files.Remove(ticketFile);
+                DbContext.SaveChanges();
+            }
+
+            return RedirectToAction("DetailsTicket", "Ticket", new { ticketId = (int)ticketId });
+        }
+
+        private ActionResult RedirectToDashError()
+        {
+            return RedirectToAction("Index", "Dashboard", TempData["ErrorMessage"] = "That data either doesn't exist or you don't have access to it.");
+        }
+        private ActionResult RedirectToDash()
+        {
+            return RedirectToAction("Index", "Dashboard");
         }
     }
 }

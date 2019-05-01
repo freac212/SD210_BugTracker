@@ -16,7 +16,55 @@ will truncate terms that are too long to fit in the left column*/
 white-space: normal;
 }*/
 
-/* Set width on the form input elements since they're 100% wide by default */
+/*Login CSS*/
+.login-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    height: 100vh;
+}
+.login-container input {
+    margin-left: unset !important;
+}
+
+.login-btn {
+    min-width: 80%;
+}
+
+.login-btn-cont {
+    display: flex; 
+    justify-content: center;
+}
+
+.login-inner-cont{
+    min-width: 30vw;
+}
+.login-desc-cont{
+    width: 80%;
+    margin: auto;
+}
+
+/*End of login CSS*/
+body {
+    position: relative;
+    min-height: 100vh;
+    background-color: rgba(225, 225, 225, 0.67);
+}
+
+.footer {
+    padding-bottom: 2.5rem; /* Footer height */
+}
+
+.inner-footer-container {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 2.5rem; /* Footer height */
+}
+
+
 input,
 select,
 textarea {

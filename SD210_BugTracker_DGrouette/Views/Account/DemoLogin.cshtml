@@ -1,0 +1,86 @@
+﻿
+@{
+    ViewBag.Title = "DemoLogin";
+}
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Manager - @ViewBag.Title</title>
+    <link href="~/Content/TemplateImages/icons/css/font-awesome.css" rel="stylesheet" />
+    <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
+
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/fontawesome-free/css/all.min.css")
+</head>
+
+<body>
+    <div class="login-container container">
+        <div class="module login-inner-cont">
+            <div class="module-head">
+                <h3>Project Manager Login</h3>
+            </div>
+            <div class="login-desc-cont">
+                <h2>Demo Login</h2>
+                <h4>Choose which role to login as:</h4>
+            </div>
+            <div class="row">
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <section id="demoLoginForm-1" style="width: 100%; height: initial;">
+                        @using (Html.BeginForm("DemoLogin", "Account", FormMethod.Post, new { style = "min-width: 80%;" }))
+                        {
+                            @Html.Hidden("roleNum", 1)
+                            <div class="form-group login-btn-cont">
+                                <input type="submit" value="Admin" class="btn btn-default login-btn" />
+                            </div>
+                        }
+                    </section>
+                    <section id="demoLoginForm-2" style="width: 100%;">
+                        @using (Html.BeginForm("DemoLogin", "Account", FormMethod.Post, new { style = "min-width: 80%;" }))
+                        {
+                            @Html.Hidden("roleNum", 2)
+                            <div class="form-group login-btn-cont">
+                                <input type="submit" value="Project Manager" class="btn btn-default login-btn" />
+                            </div>
+                        }
+                    </section>
+                    <section id="demoLoginForm-3" style="width: 100%;">
+                        @using (Html.BeginForm("DemoLogin", "Account", FormMethod.Post, new { style = "min-width: 80%;" }))
+                        {
+                            @Html.Hidden("roleNum", 3)
+                            <div class="form-group login-btn-cont">
+                                <input type="submit" value="Developer" class="btn btn-default login-btn" />
+                            </div>
+                        }
+                    </section>
+                    <section id="demoLoginForm-4" style="width: 100%;">
+                        @using (Html.BeginForm("DemoLogin", "Account", FormMethod.Post, new { style = "min-width: 80%;" }))
+                        {
+                            @Html.Hidden("roleNum", 4)
+                            <div class="form-group login-btn-cont">
+                                <input type="submit" value="Submitter" class="btn btn-default login-btn" />
+                            </div>
+                        }
+                    </section>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+
+    @* Template Scripts *@
+    @Scripts.Render("~/Scripts/SiteTemplateScripts/jquery-ui-1.10.1.custom.min.js")
+    @Scripts.Render("~/bundles/bootstrap")  @*Non template bootstrap*@
+    @Scripts.Render("~/Scripts/SiteTemplateScripts/flot/jquery.flot.js")
+</body>
+</html>

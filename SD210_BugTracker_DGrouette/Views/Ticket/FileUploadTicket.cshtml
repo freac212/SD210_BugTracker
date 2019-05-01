@@ -1,10 +1,8 @@
 ﻿@model UploadFileTicketViewModel
 @{
     ViewBag.Title = "FileUploadTicket";
+    ViewBag.Description = "Upload a file to the ticket";
 }
-
-<h2>Upload a file to the ticket.</h2>
-
 
 <form method="post" enctype="multipart/form-data">
     @Html.ValidationSummary(false, "", new { @class = "text-danger" })

@@ -8,11 +8,12 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity.Owin;
+using SD210_BugTracker_DGrouette.Models.Filters;
 
 namespace SD210_BugTracker_DGrouette.Controllers
 {
     [Authorize]
-    public class ProjectsController : Controller
+    public class ProjectController : Controller
     {
         public ApplicationUserManager UserManager => HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
         public ApplicationDbContext DbContext => HttpContext.GetOwinContext().Get<ApplicationDbContext>();
@@ -34,7 +35,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             {
                 List<ProjectsViewModel> projects = new List<ProjectsViewModel>();
 
-                projects = DbContext.Projects.ToList().Select(p => new ProjectsViewModel()
+                projects = DbContext.Projects.ToList().Where(p => !p.IsArchived).Select(p => new ProjectsViewModel()
                 {
                     Id = p.Id,
                     Title = p.Title,
@@ -61,7 +62,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             var currentUserId = User.Identity.GetUserId();
 
             var projects = DbContext.Projects.ToList()
-                .Where(project => project.Users.Any(p => p.Id == currentUserId))
+                .Where(project => project.Users.Any(p => p.Id == currentUserId) && !project.IsArchived)
                 .Select(p => new AssignedProjectsViewModel()
                 {
                     Id = p.Id,
@@ -88,9 +89,10 @@ namespace SD210_BugTracker_DGrouette.Controllers
         {
             if (ProjectHelper.IsAdminOrManager(User))
             {
-                var project = new Projects()
+                var project = new Project()
                 {
-                    Title = newProject.Title
+                    Title = newProject.Title,
+                    IsArchived = false
                 };
 
                 DbContext.Projects.Add(project);
@@ -100,17 +102,13 @@ namespace SD210_BugTracker_DGrouette.Controllers
             return RedirectToAction("Index");
         }
 
-
-
         // GET: 
         [HttpGet]
         [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
+        [IdAuthentication("id")]
         public ActionResult EditProject(int? id)
         {
-            if (id is null)
-                return RedirectToAction("Index");
-
-            var project = DbContext.Projects.FirstOrDefault(p => p.Id == id);
+            var project = ProjectHelper.GetProjectById(DbContext, (int)id);
 
             if (project is null)
                 return RedirectToAction("Index");
@@ -136,7 +134,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
 
             if (ProjectHelper.IsAdminOrManager(User))
             {
-                var projectFromDb = DbContext.Projects.FirstOrDefault(p => p.Id == editedProject.Id);
+                var projectFromDb = ProjectHelper.GetProjectById(DbContext, editedProject.Id);
 
                 if (projectFromDb is null)
                     return RedirectToAction("Index");
@@ -148,18 +146,13 @@ namespace SD210_BugTracker_DGrouette.Controllers
             return RedirectToAction("Index");
         }
 
-
-
-        // User project Assignment
         // GET: 
         [HttpGet]
         [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
+        [IdAuthentication("id")]
         public ActionResult UserProjectAssignment(int? id)
         {
-            if (id is null)
-                return RedirectToAction("Index");
-
-            var project = DbContext.Projects.FirstOrDefault(p => p.Id == id);
+            var project = ProjectHelper.GetProjectById(DbContext, (int)id);
 
             if (project is null)
                 return RedirectToAction("Index");
@@ -194,17 +187,26 @@ namespace SD210_BugTracker_DGrouette.Controllers
             if (ProjectHelper.IsAdminOrManager(User))
             {
                 // Get the project we're working on
-                var project = DbContext.Projects.FirstOrDefault(p => p.Id == assignedUsers.Id);
+                var project = ProjectHelper.GetProjectById(DbContext, assignedUsers.Id);
 
                 if (project is null)
                     return RedirectToAction("Index");
 
-                var userIds = assignedUsers.Users.Where(user => user.Selected).Select(user => user.UserId).ToList();
-                var removedIds = assignedUsers.Users.Where(user => !user.Selected).Select(user => user.UserId).ToList();
+                var userIds = assignedUsers.Users
+                    .Where(user => user.Selected)
+                    .Select(user => user.UserId)
+                    .ToList();
+                var removedIds = assignedUsers.Users
+                    .Where(user => !user.Selected)
+                    .Select(user => user.UserId)
+                    .ToList();
 
+                // Bassically removing all users from the project, then re-adding the neccessary id's/ users.
                 project.Users.RemoveAll(p => removedIds.Contains(p.Id));
 
-                var UserListLocal = UserManager.Users.Where(user => userIds.Contains(user.Id)).ToList();
+                var UserListLocal = UserManager.Users
+                    .Where(user => userIds.Contains(user.Id))
+                    .ToList();
 
                 foreach (var item in assignedUsers.Users)
                 {
@@ -239,6 +241,38 @@ namespace SD210_BugTracker_DGrouette.Controllers
 
                 DbContext.SaveChanges();
             }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
+        [IdAuthentication("id")]
+        public ActionResult ArchiveProject(int? Id)
+        {
+            var archiveProject = new ArchiveProjectViewModel()
+            {
+                ProjectId = (int)Id
+            };
+
+            return View(archiveProject);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
+        public ActionResult ArchiveProject(ArchiveProjectViewModel formData)
+        {
+            if (formData is null)
+                return RedirectToAction("Index");
+
+            var project = ProjectHelper.GetProjectById(DbContext, formData.ProjectId);
+
+            if (project is null)
+                return RedirectToAction("Index");
+
+            project.IsArchived = true;
+
+            DbContext.SaveChanges();
 
             return RedirectToAction("Index");
         }

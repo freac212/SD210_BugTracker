@@ -1,7 +1,8 @@
 ﻿@model ProjectManipulationViewModel
 
 @{
-    ViewBag.Title = "Edit project details";
+    ViewBag.Title = $"Editing project: {Model.Title}";
+    ViewBag.Description = "Change the details of project";
 }
 
 <form method="post" enctype="multipart/form-data">

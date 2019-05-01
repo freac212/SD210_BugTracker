@@ -34,6 +34,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
 
         public static bool IsAdminOrManager(IPrincipal user)
         {
+            // Could use ternaries here eh?
             if (user.IsInRole(ProjectConstants.AdminRole) || user.IsInRole(ProjectConstants.ManagerRole))
                 return true;
             else
@@ -46,6 +47,13 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
                 return true;
             else
                 return false;
+        }
+
+        public static Project GetProjectById(ApplicationDbContext dbContext, int projectId)
+        {
+            return dbContext.Projects
+                .Where(p => !p.IsArchived) // Ensures we don't grab archived projects
+                .FirstOrDefault(proj => proj.Id == projectId);
         }
     }
 }

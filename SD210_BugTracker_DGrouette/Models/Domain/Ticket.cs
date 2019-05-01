@@ -6,7 +6,7 @@ using System.Web;
 
 namespace SD210_BugTracker_DGrouette.Models.Domain
 {
-    public class Tickets
+    public class Ticket
     {
         public int Id { get; set; }
         public string Title { get; set; }
@@ -14,7 +14,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
         public DateTime DateCreated { get; set; }
         public DateTime? DateUpdated { get; set; }
 
-        public virtual Projects Project { get; set; } // Virtual for lazy loading
+        public virtual Project Project { get; set; } // Virtual for lazy loading
         public int ProjectId { get; set; }
         public virtual TicketStatuses TicketStatus { get; set; }
         public int TicketStatusId { get; set; }
@@ -31,11 +31,15 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
 
         public virtual List<Comment> Comments { get; set; }
         public virtual List<TicketFile> Files { get; set; }
+        public virtual List<TicketHistory> TicketHistories { get; set; }
+        public virtual List<ApplicationUser> SubscribedUsers { get; set; }
 
-        public Tickets()
+        public Ticket()
         {
             Comments = new List<Comment>();
             Files = new List<TicketFile>();
+            TicketHistories = new List<TicketHistory>();
+            SubscribedUsers = new List<ApplicationUser>();
         }
     }
 }

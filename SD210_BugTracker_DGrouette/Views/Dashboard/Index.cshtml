@@ -1,0 +1,50 @@
+﻿@model DashboardViewModel
+
+@{
+    ViewBag.Title = "Your DashBoard";
+}
+
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class='alert alert-danger alert-dismissible' role='alert'>
+        <button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+        <strong>@TempData["ErrorMessage"]</strong>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>
+                    Projects: @Model.ProjectCount
+                </h3>
+            </div>
+            <div class="panel-body">
+                <h5>
+                    Tickets:
+                </h5>
+                @if (ProjectHelper.IsAdminOrManager(User))
+                {
+                    <div>
+                        <dl class="dl-horizontal">
+                            <dt>Open:</dt>
+                            <dd>@Model.OpenTicketCount</dd>
+                            <dt>Rejected:</dt>
+                            <dd>@Model.RejectedTicketCount</dd>
+                            <dt>Resolved:</dt>
+                            <dd>@Model.ResolvedTicketCount</dd>
+                        </dl>
+                    </div>
+                }
+                else
+                {
+                    @Model.TicketCount
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4"></div>
+    <div class="col-lg-4"></div>
+</div>

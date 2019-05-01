@@ -1,6 +1,7 @@
 ﻿@model List<ProjectsViewModel>
 @{
     ViewBag.Title = "Projects";
+    ViewBag.Description = "All projects";
 }
 @section Scripts {
     <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
@@ -15,8 +16,7 @@
                 ]
             });
         });
-
-        /**/</script>
+    </script>
 }
 
 @section css {
@@ -53,6 +53,7 @@
                 }
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -66,8 +67,9 @@
                 {
                     <td><a href="@Url.Action("CreateTicket", "Ticket", new { projectId = project.Id })">Add Ticket</a></td>
                 }
-                <td><a href="@Url.Action("UserProjectAssignment", "Projects", new { id = project.Id})"><i class="fas fa-user-plus"></i></a></td>
-                <td><a href="@Url.Action("EditProject", "Projects", new { id = project.Id})"><i class="fas fa-edit"></i></a></td>
+                <td><a href="@Url.Action("UserProjectAssignment", "Project", new { id = project.Id})"><i class="fas fa-user-plus"></i></a></td>
+                <td><a href="@Url.Action("EditProject", "Project", new { id = project.Id})"><i class="fas fa-edit"></i></a></td>
+                <td><a href="@Url.Action("ArchiveProject", "Project", new { id = project.Id})"><i class="fas fa-trash"></i></a></td>
             </tr>
             }
         </tbody>

@@ -14,21 +14,23 @@ namespace SD210_BugTracker_DGrouette.Models
     public class ApplicationUser : IdentityUser
     {
         // Lazy loading - Many to many relationship
-        public virtual List<Projects> Projects { get; set; }
-        [InverseProperty(nameof(Tickets.CreatedBy))] // Used to connect certain properties when there's more than one of the same properties. (Like users.)
-        public virtual List<Tickets> CreatedTickets { get; set; }
-        [InverseProperty(nameof(Tickets.AssignedTo))]
-        public virtual List<Tickets> AssignedTickets { get; set; }
+        public virtual List<Project> Projects { get; set; }
+        [InverseProperty(nameof(Ticket.CreatedBy))] // Used to connect certain properties when there's more than one of the same properties. (Like users.)
+        public virtual List<Ticket> CreatedTickets { get; set; }
+        [InverseProperty(nameof(Ticket.AssignedTo))]
+        public virtual List<Ticket> AssignedTickets { get; set; }
         public virtual List<Comment> Comments { get; set; }
+        public virtual List<Ticket> SubscribedTickets { get; set; }
 
         public virtual string DisplayName { get; set; }
 
         public ApplicationUser()
         {
-            Projects = new List<Projects>();
-            CreatedTickets = new List<Tickets>();
-            AssignedTickets = new List<Tickets>();
+            Projects = new List<Project>();
+            CreatedTickets = new List<Ticket>();
+            AssignedTickets = new List<Ticket>();
             Comments = new List<Comment>();
+            SubscribedTickets = new List<Ticket>();
         }
 
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager)
@@ -47,12 +49,13 @@ namespace SD210_BugTracker_DGrouette.Models
         {
         }
         public DbSet<Comment> Comments { get; set; }
-        public DbSet<Projects> Projects { get; set; } // Allows access of users projects from the DB
-        public DbSet<Tickets> Tickets { get; set; }
+        public DbSet<TicketFile> Files { get; set; }
+        public DbSet<Project> Projects { get; set; } // Allows access of users projects from the DB
+        public DbSet<Ticket> Tickets { get; set; }
         public DbSet<TicketStatuses> TicketStatuses { get; set; }
         public DbSet<TicketPriorities> TicketPriorities { get; set; }
         public DbSet<TicketTypes> TicketTypes { get; set; }
-
+        public DbSet<TicketHistory> TicketHistories { get; set; }
         public static ApplicationDbContext Create()
         {
             return new ApplicationDbContext();

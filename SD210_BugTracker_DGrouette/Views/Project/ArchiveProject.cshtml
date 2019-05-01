@@ -1,0 +1,80 @@
+﻿@model ArchiveProjectViewModel
+
+@{
+    ViewBag.Title = "Archive Project";
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        let buttonContOne = document.getElementById("button_delete_cont_1");
+        let buttonContTwo = document.getElementById("button_delete_cont_2");
+        let buttonContThree = document.getElementById("button_delete_cont_3");
+        let buttonContFour = document.getElementById("button_delete_cont_4");
+        let buttonContFive = document.getElementById("button_delete_cont_5");
+
+        let buttonOne = document.getElementById("button_delete_1").addEventListener("click", changeVisibility)
+        let buttonTwo = document.getElementById("button_delete_2").addEventListener("click", changeVisibilityTwo);
+        let buttonThree = document.getElementById("button_delete_3").addEventListener("click", changeVisibilityThree)
+        let buttonFour = document.getElementById("button_delete_4").addEventListener("click", changeVisibilityFour);
+
+
+        function changeVisibility() {
+            buttonContOne.hidden = true;
+            buttonContTwo.hidden = false;
+        }
+
+        function changeVisibilityTwo() {
+            buttonContTwo.hidden = true;
+            buttonContThree.hidden = false;
+        }
+
+        function changeVisibilityThree() {
+            buttonContThree.hidden = true;
+            buttonContFour.hidden = false;
+        }
+
+        function changeVisibilityFour() {
+            buttonContFour.hidden = true;
+            buttonContFive.hidden = false;
+        }
+    </script>
+}
+
+<h1 class="text-warning text-center">Are you sure you want to archive this project?</h1>
+<div>
+    <div id="button_delete_cont_1" class="col-lg-6 text-center">
+        <button id="button_delete_1" class="btn btn-danger text-center">
+            Delete it.
+        </button>
+    </div>
+
+    <div id="button_delete_cont_2" hidden="hidden" class="col-lg-6 text-center">
+        <button id="button_delete_2" class="btn btn-danger text-center">
+            Are you reaaaaaally sure?
+        </button>
+    </div>
+
+    <div id="button_delete_cont_3" hidden="hidden" class="col-lg-6 text-center">
+        <button id="button_delete_3" class="btn btn-danger text-center">
+            Are you reaaaaaally reaaaaaally sure?
+        </button>
+    </div>
+
+    <div id="button_delete_cont_4" hidden="hidden" class="col-lg-6 text-center">
+        <button id="button_delete_4" class="btn btn-danger text-center">
+            Are you reaaaaaally reaaaaaally reaaaaaally sure?
+        </button>
+    </div>
+
+    @using (Html.BeginForm("ArchiveProject", "Project", FormMethod.Post, new { @class = "col-lg-6 text-center", id = "button_delete_cont_5", hidden = "hidden" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(p => p.ProjectId)
+        <input type="submit" value="Absol- friggin' -utely, Get rid of this boi." class="btn btn-danger" />
+    }
+</div>
+@using (Html.BeginForm("Index", "Project", new { Id = Model.ProjectId }, FormMethod.Get, new { @class = "col-lg-6 text-center" }))
+{
+    @Html.AntiForgeryToken()
+    <input type="submit" value="Nononononono wait, my bad, go back." class="btn btn-default" />
+}

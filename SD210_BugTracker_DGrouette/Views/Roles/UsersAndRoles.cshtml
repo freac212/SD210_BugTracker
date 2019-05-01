@@ -1,6 +1,7 @@
 ﻿@model UsersAndRolesViewModel
 @{
     ViewBag.Title = "User role assignment";
+    ViewBag.Description = "Clicking the edit user icon, on specific user, allows you to change their role for the entire site.";
 }
 
 @section Scripts {
@@ -22,8 +23,6 @@
 @section css {
     <link rel="stylesheet" href="~/Content/jquery.dataTables.min.css" />
 }
-
-<span>Clicking the edit user icon, on specific user, allows you to change their role for the entire site.</span>
 
 <table id="rolesDisplay" class="table-striped row-fluid">
     <thead>

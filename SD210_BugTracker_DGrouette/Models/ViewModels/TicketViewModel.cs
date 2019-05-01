@@ -34,5 +34,6 @@ namespace SD210_BugTracker_DGrouette.Models
 
         public List<CommentTicketViewModel> Comments { get; set; }
         public List<FileTicketViewModel> Files { get; set; }
+        public List<TicketHistoryViewModel> Histories { get; set; }
     }
 }

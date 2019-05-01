@@ -1,17 +1,16 @@
 ﻿@model UserProjectAssignmentViewModel
 
 @{
-    ViewBag.Title = Model.Title + " - User assignment page";
-}
+        ViewBag.Title = Model.Title + " - User assignment page";
+        ViewBag.Description = $"Assign users to '{@Model.Title}' project by checking the box next to their names and then clicking the submit button";
+    }
 
-<span>Assign users to "@Model.Title" project by checking the box next to their names and then clicking the submit button.</span>
 
-@section Scripts {
+    @section Scripts {
     <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
             $('#rolesDisplay').DataTable();
-
         });
     </script>
 }

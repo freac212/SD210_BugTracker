@@ -1,6 +1,7 @@
 ﻿@model List<AssignedProjectsViewModel>
 @{
     ViewBag.Title = "Assigned Projects";
+    ViewBag.Description = "Projects you've been assigned too.";
 }
 
 @section Scripts {
@@ -22,8 +23,6 @@
 @section css {
     <link rel="stylesheet" href="~/Content/jquery.dataTables.min.css" />
 }
-
-<h4>Projects you're assigned too:</h4>
 
 <table id="assignedProjectsDisplay" class="table-striped">
     <thead>
@@ -55,8 +54,8 @@
                 }
                 @if (ProjectHelper.IsAdminOrManager(User))
                 {
-                    <td><a href="@Url.Action("UserProjectAssignment", "Projects", new { id = project.Id})"><i class="fas fa-user-plus"></i></a></td>
-                    <td><a href="@Url.Action("EditProject", "Projects", new { id = project.Id})"><i class="fas fa-edit"></i></a></td>
+                    <td><a href="@Url.Action("UserProjectAssignment", "Project", new { id = project.Id})"><i class="fas fa-user-plus"></i></a></td>
+                    <td><a href="@Url.Action("EditProject", "Project", new { id = project.Id})"><i class="fas fa-edit"></i></a></td>
                 }
             </tr>
         }
