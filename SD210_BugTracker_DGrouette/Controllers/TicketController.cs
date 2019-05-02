@@ -140,14 +140,14 @@ namespace SD210_BugTracker_DGrouette.Controllers
 
             if (ProjectHelper.IsAdminOrManager(User))
             {
-                listsOfTickets.AllTickets = TicketHelper.MapTickets(DbContext.Tickets.Where(p => !p.Project.IsArchived).ToList(), User);
+                listsOfTickets.AllTickets = TicketHelper.MapTickets(DbContext.Tickets.ToList(), User);
 
                 listsOfTickets.AssignedTickets = TicketHelper.MapTickets(DbContext.Tickets
-                    .Where(p => p.AssignedToId == userId && !p.Project.IsArchived)
+                    .Where(p => p.AssignedToId == userId)
                     .ToList(), User);
 
                 listsOfTickets.CreatedTickets = TicketHelper.MapTickets(DbContext.Tickets
-                    .Where(p => p.CreatedById == userId && !p.Project.IsArchived)
+                    .Where(p => p.CreatedById == userId)
                     .ToList(), User);
             }
             else
@@ -157,18 +157,18 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 // get project Id's of the projects this user is assigned to, get the tickets that matches those project id's
 
                 var tickets = DbContext.Projects
-                    .Where(i => i.Users.Any(p => p.Id == userId) && !i.IsArchived)
+                    .Where(i => i.Users.Any(p => p.Id == userId))
                     .SelectMany(p => p.Tickets)
                     .ToList();
 
                 listsOfTickets.AllTickets = TicketHelper.MapTickets(tickets, User);
 
                 listsOfTickets.AssignedTickets = TicketHelper.MapTickets(DbContext.Tickets
-                    .Where(p => p.AssignedToId == userId && !p.Project.IsArchived)
+                    .Where(p => p.AssignedToId == userId)
                     .ToList(), User);
 
                 listsOfTickets.CreatedTickets = TicketHelper.MapTickets(DbContext.Tickets
-                    .Where(p => p.CreatedById == userId && !p.Project.IsArchived)
+                    .Where(p => p.CreatedById == userId)
                     .ToList(), User);
             }
 
@@ -444,7 +444,6 @@ namespace SD210_BugTracker_DGrouette.Controllers
         {
             var user = UserManager.FindById(User.Identity.GetUserId());
             var notifications = DbContext.Tickets
-                .Where(p => !p.Project.IsArchived)
                 .Select(p => new TicketNotificationViewModel()
                 {
                     TicketTitle = p.Title,
@@ -469,7 +468,6 @@ namespace SD210_BugTracker_DGrouette.Controllers
             foreach (var notification in formData)
             {
                 var ticket = DbContext.Tickets
-                    .Where(p => !p.Project.IsArchived)
                     .FirstOrDefault(p => p.Id == notification.TicketId);
 
                 if (ticket is null)

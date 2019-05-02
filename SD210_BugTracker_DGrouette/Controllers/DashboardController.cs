@@ -36,16 +36,13 @@ namespace SD210_BugTracker_DGrouette.Controllers
             //      # of Tickets they've created
 
             var userId = User.Identity.GetUserId();
-            var nonArchivedTickets = DbContext.Tickets
-                    .Where(p => !p.Project.IsArchived)
-                    .ToList();
+            var nonArchivedTickets = DbContext.Tickets.ToList();
 
             DashboardViewModel dashboardData = new DashboardViewModel();
 
             if (ProjectHelper.IsAdminOrManager(User))
             {
                 dashboardData.ProjectCount = DbContext.Projects
-                    .Where(p => !p.IsArchived)
                     .Count();
                 dashboardData.TicketCount = nonArchivedTickets
                     .Count();
@@ -63,7 +60,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             else if (User.IsInRole(ProjectConstants.DeveloperRole))
             {
                 dashboardData.ProjectCount = DbContext.Projects
-                    .Where(i => i.Users.Any(p => p.Id == userId) && !i.IsArchived) // where the projects contains this user, get all those projects, count it.
+                    .Where(i => i.Users.Any(p => p.Id == userId)) // where the projects contains this user, get all those projects, count it.
                     .Count();
 
                 dashboardData.TicketCount = DbContext.Tickets
@@ -74,7 +71,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             else if (User.IsInRole(ProjectConstants.SubmitterRole))
             {
                 dashboardData.ProjectCount = DbContext.Projects
-                   .Where(i => i.Users.Any(p => p.Id == userId) && !i.IsArchived) // where the projects contains this user, get all those projects, count it.
+                   .Where(i => i.Users.Any(p => p.Id == userId)) // where the projects contains this user, get all those projects, count it.
                    .Count();
 
                 dashboardData.TicketCount = DbContext.Tickets

@@ -52,7 +52,6 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
         public static Project GetProjectById(ApplicationDbContext dbContext, int projectId)
         {
             return dbContext.Projects
-                .Where(p => !p.IsArchived) // Ensures we don't grab archived projects
                 .FirstOrDefault(proj => proj.Id == projectId);
         }
     }

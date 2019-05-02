@@ -139,7 +139,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
                     TicketPriorityId = ticket.TicketPriorityId,
                     TicketTypeId = ticket.TicketTypeId,
                     AssignedToId = ticket?.AssignedToId,
-                    Projects = DbContext.Projects.Where(p => !p.IsArchived).Select(p =>
+                    Projects = DbContext.Projects.Select(p =>
                         new SelectListItem()
                         {
                             Text = p.Title,
@@ -187,7 +187,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
                     TicketPriorityId = ticket.TicketPriorityId,
                     TicketTypeId = ticket.TicketTypeId,
                     // This works for both submitter and devs, as they HAVE to be assigned to the project.
-                    Projects = DbContext.Projects.Where(user => user.Users.Any(usr => usr.Id == currentUser.Id) && !user.IsArchived).Select(p =>
+                    Projects = DbContext.Projects.Where(user => user.Users.Any(usr => usr.Id == currentUser.Id)).Select(p =>
                         new SelectListItem()
                         {
                             Text = p.Title,
@@ -236,7 +236,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
                     TicketPriorityId = ticket.TicketPriorityId,
                     TicketTypeId = ticket.TicketTypeId,
                     AssignedToId = ticket?.AssignedToId,
-                    Projects = DbContext.Projects.Where(p => !p.IsArchived).Select(p =>
+                    Projects = DbContext.Projects.Select(p =>
                         new SelectListItem()
                         {
                             Text = p.Title,
@@ -288,7 +288,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
                     TicketStatusId = ticketStatusId,
                     TicketTypeId = ticket.TicketTypeId,
                     // This works for both submitter and devs, as they HAVE to be assigned to the project.
-                    Projects = DbContext.Projects.Where(user => user.Users.Any(usr => usr.Id == currentUser.Id) && !user.IsArchived).Select(p =>
+                    Projects = DbContext.Projects.Where(user => user.Users.Any(usr => usr.Id == currentUser.Id)).Select(p =>
                         new SelectListItem()
                         {
                             Text = p.Title,

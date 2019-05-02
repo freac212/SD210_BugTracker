@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using EntityFramework.DynamicFilters;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using SD210_BugTracker_DGrouette.Models.Domain;
@@ -48,6 +49,16 @@ namespace SD210_BugTracker_DGrouette.Models
             : base("DefaultConnection", throwIfV1Schema: false)
         {
         }
+
+        // This modifies the query sent to the DB to get projects and tickets
+        // It just ensures that anything on the DB that is archived is not "picked up"
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Filter("IsArchived", (Project d) => !d.IsArchived);
+            modelBuilder.Filter("IsArchivedTicket", (Ticket d) => !d.Project.IsArchived);
+        }
+
         public DbSet<Comment> Comments { get; set; }
         public DbSet<TicketFile> Files { get; set; }
         public DbSet<Project> Projects { get; set; } // Allows access of users projects from the DB

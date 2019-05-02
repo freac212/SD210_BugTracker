@@ -34,7 +34,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             {
                 List<ProjectsViewModel> projects = new List<ProjectsViewModel>();
 
-                projects = DbContext.Projects.ToList().Where(p => !p.IsArchived).Select(p => new ProjectsViewModel()
+                projects = DbContext.Projects.ToList().Select(p => new ProjectsViewModel()
                 {
                     Id = p.Id,
                     Title = p.Title,
@@ -61,7 +61,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
             var currentUserId = User.Identity.GetUserId();
 
             var projects = DbContext.Projects.ToList()
-                .Where(project => project.Users.Any(p => p.Id == currentUserId) && !project.IsArchived)
+                .Where(project => project.Users.Any(p => p.Id == currentUserId))
                 .Select(p => new AssignedProjectsViewModel()
                 {
                     Id = p.Id,
