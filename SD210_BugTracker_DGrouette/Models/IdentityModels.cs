@@ -57,16 +57,23 @@ namespace SD210_BugTracker_DGrouette.Models
             base.OnModelCreating(modelBuilder);
             modelBuilder.Filter("IsArchived", (Project d) => !d.IsArchived);
             modelBuilder.Filter("IsArchivedTicket", (Ticket d) => !d.Project.IsArchived);
+            modelBuilder.Filter("IsArchivedTicketComment", (Comment d) => !d.Ticket.Project.IsArchived);
+            modelBuilder.Filter("IsArchivedTicketFile", (TicketFile d) => !d.Ticket.Project.IsArchived);
+            modelBuilder.Filter("IsArchivedTicketHistory", (TicketHistory d) => !d.Ticket.Project.IsArchived);
         }
 
         public DbSet<Comment> Comments { get; set; }
         public DbSet<TicketFile> Files { get; set; }
         public DbSet<Project> Projects { get; set; } // Allows access of users projects from the DB
+
         public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<TicketHistory> TicketHistories { get; set; }
+
         public DbSet<TicketStatuses> TicketStatuses { get; set; }
         public DbSet<TicketPriorities> TicketPriorities { get; set; }
         public DbSet<TicketTypes> TicketTypes { get; set; }
-        public DbSet<TicketHistory> TicketHistories { get; set; }
+
+
         public static ApplicationDbContext Create()
         {
             return new ApplicationDbContext();
