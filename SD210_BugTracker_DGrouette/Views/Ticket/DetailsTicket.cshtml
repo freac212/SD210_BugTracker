@@ -30,22 +30,29 @@
 
     @foreach (var comment in Model.Comments)
     {
-        var commentId = comment.Id + "_comment";
-        var commentFormId = "comment_" + comment.Id + "_form";
+        var commentIdDelete = comment.Id + "_comment_delete";
+        var commentFormIdDelete = "comment_" + comment.Id + "_form_delete";
         var commentHtmlContId = comment.Id + "_comment_cont";
 
+        var commentIdEdit = comment.Id + "_comment_edit";
+        var commentFormIdEdit = "comment_" + comment.Id + "_form_edit";
+
         <script type="text/javascript">
-                    $("#@commentId").click(function () {
+                    $("#@commentIdDelete").click(function () {
                             $.ajax({
                                 url:'/Ticket/DeleteComment/',
                                 type:'post',
-                                data:$('#@commentFormId').serialize()
+                                data:$('#@commentFormIdDelete').serialize()
                             });
                         $("#@commentHtmlContId").hide();
                         updateCommentCount();
                     });
+                    $("#@commentIdEdit").click(function () {
+                        $("#@commentFormIdEdit").submit();
+                    });
         </script>
     }
+
     @foreach (var file in Model.Files)
     {
         var fileHtmlId = file.Id + "_file";
@@ -111,7 +118,7 @@
 {
     @* Have comments here *@
     <div class="container-fluid">
-        @Html.ActionLink("Add Comment", "CommentTicket", new { ticketId = Model.Id })
+        @Html.ActionLink("Add Comment", "CreateComment", new { ticketId = Model.Id })
     </div>
 }
 
@@ -241,19 +248,26 @@ else
                 <div class="module-body">
                     @foreach (var comment in Model.Comments)
                     {
-                        var commentId = comment.Id + "_comment";
-                        var commentFormId = "comment_" + comment.Id + "_form";
+                        var commentIdDelete = comment.Id + "_comment_delete";
+                        var commentFormIdDelete = "comment_" + comment.Id + "_form_delete";
                         var commentHtmlContId = comment.Id + "_comment_cont";
 
+                        var commentIdEdit = comment.Id + "_comment_edit";
+                        var commentFormIdEdit = "comment_" + comment.Id + "_form_edit";
                         <div class="col-12 border-bottom" style="margin-bottom: 2%;" id="@commentHtmlContId">
                             @* If user is admin/ PM -> or is Creator of comment *@
-                            @if (comment.CanDeleteComment)
+                            @if (comment.CanModifyComment)
                             {
-                                using (Html.BeginForm("DeleteComment", "Ticket", null, FormMethod.Post, new { id = $"{commentFormId}", style="position: absolute; right: 4%;" }))
+                                using (Html.BeginForm("DeleteComment", "Ticket", null, FormMethod.Post, new { id = $"{commentFormIdDelete}", style = "position: absolute; right: 4%;" }))
                                 {
                                     @Html.Hidden("itemId", comment.Id)
                                     @Html.Hidden("ticketId", Model.Id)
-                                    <i class="fa fa-trash" id="@commentId"></i>
+                                    <i class="fa fa-trash" id="@commentIdDelete"></i>
+                                }
+                                using (Html.BeginForm("EditComment", "Ticket", null, FormMethod.Get, new { id = $"{commentFormIdEdit}", style = "position: absolute; right: 8%;" }))
+                                {
+                                    @Html.Hidden("commentId", comment.Id)
+                                    <i class="fa fa-wrench" id="@commentIdEdit"></i>
                                 }
                             }
                             <div class="d-flex justify-content-between">

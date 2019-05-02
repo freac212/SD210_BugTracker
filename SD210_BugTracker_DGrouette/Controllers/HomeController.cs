@@ -10,7 +10,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
     {
         public ActionResult Index()
         {
-            return RedirectToAction("Index", "Project");
+            return RedirectToAction("Index", "Dashboard");
         }
     }
 }

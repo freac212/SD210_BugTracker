@@ -1,12 +1,12 @@
 ﻿@model UserProjectAssignmentViewModel
 
 @{
-        ViewBag.Title = Model.Title + " - User assignment page";
-        ViewBag.Description = $"Assign users to '{@Model.Title}' project by checking the box next to their names and then clicking the submit button";
-    }
+    ViewBag.Title = Model.Title + " - User assignment page";
+    ViewBag.Description = $"Assign users to '{@Model.Title}' project by checking the box next to their names and then clicking the submit button";
+}
 
 
-    @section Scripts {
+@section Scripts {
     <script type="text/javascript" src="~/Scripts/jquery.dataTables.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
@@ -21,6 +21,7 @@
 
 <form method="post" enctype="multipart/form-data">
     <table id="rolesDisplay" class="table-striped">
+        @Html.HiddenFor(p => p.projectId)
         <thead>
             <tr>
                 <th>Display Name:</th>

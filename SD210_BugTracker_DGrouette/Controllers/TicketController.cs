@@ -19,12 +19,6 @@ namespace SD210_BugTracker_DGrouette.Controllers
     [Authorize] // Logged in users only
     public class TicketController : Controller
     {
-        // This is here for my FilterAttributes, allows the use of RedirectToAction()
-        public new RedirectToRouteResult RedirectToAction(string action, string controller)
-        {
-            return base.RedirectToAction(action, controller);
-        }
-
         public ApplicationUserManager UserManager => HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
         public ApplicationDbContext DbContext => HttpContext.GetOwinContext().Get<ApplicationDbContext>();
         public RoleManager<IdentityRole> RoleManager => new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(DbContext));
@@ -38,6 +32,12 @@ namespace SD210_BugTracker_DGrouette.Controllers
             var project = ProjectHelper.GetProjectById(DbContext, (int)projectId);
 
             if (project is null)
+                return RedirectToDashError();
+
+            // Check if user is assigned to project && is in submitter role (part of auth already)
+            var user = UserManager.FindById(User.Identity.GetUserId());
+
+            if (!project.Users.Any(p => p.Id == user.Id))
                 return RedirectToDashError();
 
             var ticket = new CreateTicketViewModel()
@@ -66,6 +66,18 @@ namespace SD210_BugTracker_DGrouette.Controllers
         [Authorize(Roles = ProjectConstants.SubmitterRole)] // Must be in submitter role to submit a ticket creation
         public ActionResult CreateTicket(CreateTicketViewModel newTicket)
         {
+            // Get project id
+            var project = ProjectHelper.GetProjectById(DbContext, newTicket.ProjectId);
+
+            if (project is null)
+                return RedirectToDashError();
+
+            // Check if user is assigned to project && is in submitter role (part of auth already)
+            var user = UserManager.FindById(User.Identity.GetUserId());
+
+            if (!project.Users.Any(p => p.Id == user.Id))
+                return RedirectToDashError();
+
 
             if (!ModelState.IsValid)
             {
@@ -87,12 +99,6 @@ namespace SD210_BugTracker_DGrouette.Controllers
 
                 return View(newTicket);
             }
-
-            // Get project id
-            var project = ProjectHelper.GetProjectById(DbContext, newTicket.ProjectId);
-
-            if (project is null)
-                return RedirectToDashError();
 
             // Get Users to assign to the Ticket (Must be in Devs Role) ++Q
             // set Creator to current User
@@ -291,7 +297,7 @@ namespace SD210_BugTracker_DGrouette.Controllers
 
         [HttpGet]
         [IdAuthentication("ticketId")]
-        public ActionResult CommentTicket(int? ticketId)
+        public ActionResult CreateComment(int? ticketId)
         {
             var ticket = DbContext.Tickets.FirstOrDefault(tckt => tckt.Id == ticketId);
 
@@ -315,8 +321,11 @@ namespace SD210_BugTracker_DGrouette.Controllers
         }
 
         [HttpPost]
-        public ActionResult CommentTicket(CreateCommentTicketViewModel formData)
+        public ActionResult CreateComment(CreateCommentTicketViewModel formData)
         {
+            if (!ModelState.IsValid)
+                return View(formData);
+
             if (formData is null)
                 return RedirectToDashError();
 
@@ -475,6 +484,62 @@ namespace SD210_BugTracker_DGrouette.Controllers
             DbContext.SaveChanges();
 
             return RedirectToAction("Index", "Manage");
+        }
+
+        [HttpGet]
+        [IdAuthentication("commentId")]
+        public ActionResult EditComment(int? commentId)
+        {
+            // Get comment being edited
+            var comment = DbContext.Comments.FirstOrDefault(cmt => cmt.Id == commentId);
+
+            if (comment is null)
+                return RedirectToDashError();
+
+            // Do user validation
+            if (TicketHelper.UserCanAccessComment(User, comment))
+            {
+                var commentViewModel = new EditCommentTicketViewModel()
+                {
+                    Id = comment.Id,
+                    TicketId = comment.TicketId,
+                    Comment = comment.CommentData,
+                };
+
+                return View(commentViewModel);
+            }
+            else
+            {
+                return RedirectToDashError();
+            }
+        }
+
+        [HttpPost]
+        public ActionResult EditComment(EditCommentTicketViewModel formData)
+        {
+            if (!ModelState.IsValid)
+                return View(formData);
+            
+            if (formData is null)
+                return RedirectToDashError();
+
+            var comment = DbContext.Comments.FirstOrDefault(cmt => cmt.Id == formData.Id);
+
+            if (comment is null)
+                return RedirectToDashError();
+
+            if (TicketHelper.UserCanAccessComment(User, comment))
+            {
+                comment.CommentData = formData.Comment;
+
+                DbContext.SaveChanges();
+
+                return RedirectToAction("DetailsTicket", "Ticket", new { ticketId = formData.TicketId});
+            }
+            else
+            {
+                return RedirectToDashError();
+            }
         }
 
         [HttpPost]

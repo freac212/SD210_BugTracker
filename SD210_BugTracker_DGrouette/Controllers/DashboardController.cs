@@ -34,7 +34,12 @@ namespace SD210_BugTracker_DGrouette.Controllers
             // Submitter
             //      # of Projects they're assigned too
             //      # of Tickets they've created
+
             var userId = User.Identity.GetUserId();
+            var nonArchivedTickets = DbContext.Tickets
+                    .Where(p => !p.Project.IsArchived)
+                    .ToList();
+
             DashboardViewModel dashboardData = new DashboardViewModel();
 
             if (ProjectHelper.IsAdminOrManager(User))
@@ -42,11 +47,18 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 dashboardData.ProjectCount = DbContext.Projects
                     .Where(p => !p.IsArchived)
                     .Count();
-                dashboardData.TicketCount = DbContext.Tickets.Count();
+                dashboardData.TicketCount = nonArchivedTickets
+                    .Count();
 
-                dashboardData.OpenTicketCount = DbContext.Tickets.Where(p => p.TicketStatus.Name == ProjectConstants.TicketStatusOpen).Count();
-                dashboardData.ResolvedTicketCount = DbContext.Tickets.Where(p => p.TicketStatus.Name == ProjectConstants.TicketStatusResolved).Count();
-                dashboardData.RejectedTicketCount = DbContext.Tickets.Where(p => p.TicketStatus.Name == ProjectConstants.TicketStatusRejected).Count();
+                dashboardData.OpenTicketCount = nonArchivedTickets
+                    .Where(p => p.TicketStatus.Name == ProjectConstants.TicketStatusOpen)
+                    .Count();
+                dashboardData.ResolvedTicketCount = nonArchivedTickets
+                    .Where(p => p.TicketStatus.Name == ProjectConstants.TicketStatusResolved)
+                    .Count();
+                dashboardData.RejectedTicketCount = nonArchivedTickets
+                    .Where(p => p.TicketStatus.Name == ProjectConstants.TicketStatusRejected)
+                    .Count();
             }
             else if (User.IsInRole(ProjectConstants.DeveloperRole))
             {

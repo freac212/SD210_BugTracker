@@ -60,7 +60,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
                            Comment = cmt.CommentData,
                            CreatorDisplayName = cmt.User.DisplayName,
                            CreatorId = cmt.UserId,
-                           CanDeleteComment = UserCanDeleteComment(user, cmt),
+                           CanModifyComment = UserCanModifyComment(user, cmt),
                            DateCreated = cmt.DateCreated,
                        }).ToList(),
                        CanEdit = UserCanAccessTicket(user, ticket),
@@ -96,7 +96,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
                     Comment = cmt.CommentData,
                     CreatorDisplayName = cmt.User.DisplayName,
                     CreatorId = cmt.UserId,
-                    CanDeleteComment = UserCanDeleteComment(user, cmt),
+                    CanModifyComment = UserCanModifyComment(user, cmt),
                     DateCreated = cmt.DateCreated,
                 }).ToList(),
                 Files = ticket.Files.Select(file => new FileTicketViewModel()
@@ -345,6 +345,23 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
             return false;
         }
 
+        internal static bool UserCanAccessComment(IPrincipal user, Comment comment)
+        {
+            var userId = user.Identity.GetUserId();
+
+            if (ProjectHelper.IsAdminOrManager(user))
+            {
+                // Return ticket because user is a project manager or Admin
+                return true;
+            }
+            if (ProjectHelper.IsDevOrSubmitter(user))
+            {
+                if (comment.UserId == userId)
+                    return true;
+            }
+            return false;
+        }
+
         internal static bool UserCanViewDetails(IPrincipal user, Ticket ticket)
         {
             var userId = user.Identity.GetUserId();
@@ -376,7 +393,7 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
             return false;
         }
 
-        private static bool UserCanDeleteComment(IPrincipal user, Comment comment)
+        private static bool UserCanModifyComment(IPrincipal user, Comment comment)
         {
             var userId = user.Identity.GetUserId();
 
@@ -493,6 +510,17 @@ namespace SD210_BugTracker_DGrouette.Models.Domain
                             historyDetails[i].OldValue = "No dev assigned";
                         if (historyDetails[i].NewValue is null)
                             historyDetails[i].NewValue = "No dev assigned";
+                    }
+                    else if (historyDetails[i].Property == "ProjectId")
+                    {
+                        var projects = DbContext.Projects.ToList();
+
+                        var devUserNew = projects.Find(p => p.Id.ToString() == historyDetails[i].NewValue);
+                        var devUserOld = projects.Find(p => p.Id.ToString() == historyDetails[i].OldValue);
+
+                        historyDetails[i].Property = "Assigned Project";
+                        historyDetails[i].OldValue = devUserOld.Title;
+                        historyDetails[i].NewValue = devUserNew.Title;
                     }
                 }
 

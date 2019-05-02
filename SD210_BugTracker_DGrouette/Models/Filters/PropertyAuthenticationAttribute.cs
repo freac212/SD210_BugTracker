@@ -19,12 +19,17 @@ namespace SD210_BugTracker_DGrouette.Models.Filters
         {
             foreach (var item in filterContext.ActionParameters)
             {
-                var controller = (TicketController)filterContext.Controller;
+                var controller = filterContext.Controller;
 
                 if (item.Value is null)
                 {
                     Debug.WriteLine("Item was null, redirecting.");
-                    filterContext.Result = controller.RedirectToAction("Index", "Dashboard");
+                    filterContext.Result = new RedirectToRouteResult(
+                        new RouteValueDictionary
+                        {
+                            { "controller", "Dashboard" },
+                            { "action", "Index" }
+                        });
                 }
             }
         }

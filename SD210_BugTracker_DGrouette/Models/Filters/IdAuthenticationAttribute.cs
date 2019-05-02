@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 
 namespace SD210_BugTracker_DGrouette.Models.Filters
 {
@@ -20,17 +21,21 @@ namespace SD210_BugTracker_DGrouette.Models.Filters
         // Ensure specified strings are not null
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            var controller = (TicketController)filterContext.Controller;
-
             foreach (var parameter in Parameters)
             {
+                //var a = filterContext.RouteData.Values[];
                 var item = filterContext.HttpContext.Request[parameter];
 
                 if (String.IsNullOrEmpty(item))
                 {
                     Debug.WriteLine("Item was null, redirecting.");
                     filterContext.Controller.TempData["ErrorMessage"] = "That data either doesn't exist or you don't have access to it.";
-                    filterContext.Result = controller.RedirectToAction("Index", "Dashboard");
+                    filterContext.Result = new RedirectToRouteResult(
+                        new RouteValueDictionary
+                        {
+                            { "controller", "Dashboard" },
+                            { "action", "Index" }
+                        });
                 }
             }
         }

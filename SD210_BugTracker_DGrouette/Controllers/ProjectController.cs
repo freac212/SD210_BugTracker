@@ -19,7 +19,6 @@ namespace SD210_BugTracker_DGrouette.Controllers
         public ApplicationDbContext DbContext => HttpContext.GetOwinContext().Get<ApplicationDbContext>();
         public RoleManager<IdentityRole> RoleManager => new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(DbContext));
 
-
         // GET: Projects
         [HttpGet]
         public ActionResult Index()
@@ -87,17 +86,14 @@ namespace SD210_BugTracker_DGrouette.Controllers
         [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
         public ActionResult CreateProject(ProjectManipulationViewModel newProject)
         {
-            if (ProjectHelper.IsAdminOrManager(User))
+            var project = new Project()
             {
-                var project = new Project()
-                {
-                    Title = newProject.Title,
-                    IsArchived = false
-                };
+                Title = newProject.Title,
+                IsArchived = false
+            };
 
-                DbContext.Projects.Add(project);
-                DbContext.SaveChanges();
-            }
+            DbContext.Projects.Add(project);
+            DbContext.SaveChanges();
 
             return RedirectToAction("Index");
         }
@@ -105,10 +101,10 @@ namespace SD210_BugTracker_DGrouette.Controllers
         // GET: 
         [HttpGet]
         [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
-        [IdAuthentication("id")]
-        public ActionResult EditProject(int? id)
+        [IdAuthentication("projectId")]
+        public ActionResult EditProject(int? projectId)
         {
-            var project = ProjectHelper.GetProjectById(DbContext, (int)id);
+            var project = ProjectHelper.GetProjectById(DbContext, (int)projectId);
 
             if (project is null)
                 return RedirectToAction("Index");
@@ -132,16 +128,13 @@ namespace SD210_BugTracker_DGrouette.Controllers
                 return RedirectToAction("Index");
             }
 
-            if (ProjectHelper.IsAdminOrManager(User))
-            {
-                var projectFromDb = ProjectHelper.GetProjectById(DbContext, editedProject.Id);
+            var projectFromDb = ProjectHelper.GetProjectById(DbContext, editedProject.Id);
 
-                if (projectFromDb is null)
-                    return RedirectToAction("Index");
+            if (projectFromDb is null)
+                return RedirectToAction("Index");
 
-                projectFromDb.Title = editedProject.Title;
-                DbContext.SaveChanges();
-            }
+            projectFromDb.Title = editedProject.Title;
+            DbContext.SaveChanges();
 
             return RedirectToAction("Index");
         }
@@ -149,10 +142,10 @@ namespace SD210_BugTracker_DGrouette.Controllers
         // GET: 
         [HttpGet]
         [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
-        [IdAuthentication("id")]
-        public ActionResult UserProjectAssignment(int? id)
+        [IdAuthentication("projectId")]
+        public ActionResult UserProjectAssignment(int? projectId)
         {
-            var project = ProjectHelper.GetProjectById(DbContext, (int)id);
+            var project = ProjectHelper.GetProjectById(DbContext, (int)projectId);
 
             if (project is null)
                 return RedirectToAction("Index");
@@ -160,12 +153,12 @@ namespace SD210_BugTracker_DGrouette.Controllers
             var projectViewModel = new UserProjectAssignmentViewModel()
             {
                 Title = project.Title,
-                Id = project.Id,
+                projectId = project.Id,
                 Users = DbContext.Users.Select(user => new UserInProjectViewModel()
                 {
                     DisplayName = user.DisplayName,
                     Email = user.Email,
-                    Selected = user.Projects.Any(prop => prop.Id == project.Id),
+                    Selected = user.Projects.Any(p => p.Id == project.Id),
                     UserId = user.Id
                 }).ToList()
             };
@@ -178,81 +171,72 @@ namespace SD210_BugTracker_DGrouette.Controllers
         [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
         public ActionResult UserProjectAssignment(UserProjectAssignmentViewModel assignedUsers)
         {
-            // No required tags are used so this isn't really neccessary.
-            if (!ModelState.IsValid)
+            // Get the project we're working on
+            var project = ProjectHelper.GetProjectById(DbContext, assignedUsers.projectId);
+
+            if (project is null)
+                return RedirectToAction("Index");
+
+            var userIds = assignedUsers.Users
+                .Where(user => user.Selected)
+                .Select(user => user.UserId)
+                .ToList();
+            var removedIds = assignedUsers.Users
+                .Where(user => !user.Selected)
+                .Select(user => user.UserId)
+                .ToList();
+
+            // Removing users not selected
+            project.Users.RemoveAll(p => removedIds.Contains(p.Id));
+
+            // A list of users that were selected
+            var UserListLocal = UserManager.Users
+                .Where(user => userIds.Contains(user.Id))
+                .ToList();
+
+            foreach (var item in assignedUsers.Users)
             {
-                return View();
-            }
+                // If user exists on the project
+                // And is selected 
+                // do nothing
 
-            if (ProjectHelper.IsAdminOrManager(User))
-            {
-                // Get the project we're working on
-                var project = ProjectHelper.GetProjectById(DbContext, assignedUsers.Id);
+                // if the user is NOT on the project and 
+                // is selected
+                // Add
 
-                if (project is null)
-                    return RedirectToAction("Index");
+                // if the user is NOT on the project and 
+                // is not selected
+                // do nothing
 
-                var userIds = assignedUsers.Users
-                    .Where(user => user.Selected)
-                    .Select(user => user.UserId)
-                    .ToList();
-                var removedIds = assignedUsers.Users
-                    .Where(user => !user.Selected)
-                    .Select(user => user.UserId)
-                    .ToList();
+                // if the user is on the project and 
+                // is NOT selected
+                // remove it
 
-                // Bassically removing all users from the project, then re-adding the neccessary id's/ users.
-                project.Users.RemoveAll(p => removedIds.Contains(p.Id));
-
-                var UserListLocal = UserManager.Users
-                    .Where(user => userIds.Contains(user.Id))
-                    .ToList();
-
-                foreach (var item in assignedUsers.Users)
+                // If the user is selected and is not already on the project, add them.
+                if (item.Selected && !project.Users.Any(p => p.Id == item.UserId))
                 {
-                    // If user exists on the project
-                    // And is selected 
-                    // do nothing
-
-                    // if the user is NOT on the project and 
-                    // is selected
-                    // Add
-
-                    // if the user is NOT on the project and 
-                    // is not selected
-                    // do nothing
-
-                    // if the user is on the project and 
-                    // is NOT selected
-                    // remove it
-
-                    if (item.Selected && !project.Users.Any(p => p.Id == item.UserId))
-                    {
-                        project.Users.Add(UserListLocal.FirstOrDefault(p => p.Id == item.UserId));
-                    }
-                    //else if (!item.Selected && project.Users.Any(p => p.Id == item.UserId))
-                    //{
-                    //    //project.Users.Remove(UserListLocal.FirstOrDefault(p => p.Id == item.UserId));
-                    //    project.Users.RemoveAll(p => p.Id == item.UserId);
-                    //}
-
-                    // Can remove all users, then add the ones back 
+                    project.Users.Add(UserListLocal.FirstOrDefault(p => p.Id == item.UserId));
                 }
-
-                DbContext.SaveChanges();
+                //else if (!item.Selected && project.Users.Any(p => p.Id == item.UserId))
+                //{
+                //    //project.Users.Remove(UserListLocal.FirstOrDefault(p => p.Id == item.UserId));
+                //    project.Users.RemoveAll(p => p.Id == item.UserId);
+                //}
             }
+
+            DbContext.SaveChanges();
 
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         [Authorize(Roles = ProjectConstants.AdminRole + "," + ProjectConstants.ManagerRole)]
-        [IdAuthentication("id")]
-        public ActionResult ArchiveProject(int? Id)
+        [IdAuthentication("projectId")]
+        public ActionResult ArchiveProject(int? projectId)
         {
             var archiveProject = new ArchiveProjectViewModel()
             {
-                ProjectId = (int)Id
+                ProjectId = (int)projectId
             };
 
             return View(archiveProject);
